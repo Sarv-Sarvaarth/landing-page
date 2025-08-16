@@ -1,0 +1,191 @@
+/*--------------------------------------------------
+    ## FAQs
+---------------------------------------------------*/
+
+.faq-image-part {
+    margin-bottom: -30px;
+    .image {
+        z-index: 1;
+        position: relative;
+        margin-bottom: 30px;
+        img:not(.shape) {
+            width: 100%;
+        }
+        .shape {
+            position: absolute;
+            z-index: -1;
+            &.one {
+                bottom: 95%;
+                right: 100%;
+            }
+            &.two {
+                left: 100%;
+                top: 95%;
+            }
+        }
+    }
+}
+
+.faq-content-part {
+    .faq-accordion {
+        max-width: 500px;
+    }
+}
+
+.accordion-item {
+    border-left: 0;
+    border-right: 0;
+    background: transparent;
+    @include gapTB(padding, 30px);
+    &:last-of-type,
+    &:first-of-type {
+        border-radius: 0;
+    }
+    .accordion-header {
+        @include res-bl(xl) {
+            font-size: 26px;
+        }
+        button {
+            border: none;
+            display: flex;
+            font-weight: 800;
+            text-align: left;
+            align-items: center;
+            background: transparent;
+            text-transform: capitalize;
+            font-family: var(--heading-font);
+            @include res-bl(xs) {
+                font-size: 20px;
+            }
+            &:before {
+                flex: none;
+                content: "";
+                font-size: 12px;
+                transition: 0.5s;
+                font-weight: 400;
+                border: 2px solid;
+                margin-right: 25px;
+                font-family: 'Flaticon';
+                color: var(--primary-color);
+                @include circle(transparent, 42px);
+                line-height: 38px;
+                @include res-bl(xs) {
+                    line-height: 34px;
+                    border-width: 1px;
+                    margin-right: 15px;
+                    @include size(36px);
+                }
+            }
+            &.collapsed {
+                &:before {
+                    content: "";
+                    color: #C4C4C4;
+                }
+            }
+        }
+    }
+    .accordion-body {
+        padding: 10px 0 0 55px;
+    }
+}
+
+
+/* FAQ style two */
+.faq-accordion-two {
+    .accordion-item {
+        border: 0;
+        padding: 0;
+        .accordion-header {
+            button {
+                width: 100%;
+                color: white;
+                display: flex;
+                font-size: 20px;
+                transition: 0.5s;
+                font-weight: 700;
+                border-radius: 3px;
+                padding: 15px 18px;
+                margin-bottom: 20px;
+                justify-content: space-between;
+                background: var(--primary-color);
+                @include res-bl(ms) {
+                    font-size: 18px;
+                }
+                @include res-bl(xs) {
+                    font-size: 16px;
+                }
+                &:before {
+                    display: none;
+                }
+                .icon {
+                    font-size: 0.85em;
+                    &.close {
+                        display: none;
+                    }
+                }
+                &.collapsed {
+                    color: var(--heading-color);
+                    background: var(--lighter-color);
+                    .icon {
+                        display: block;
+                        &.open {
+                            display: none;
+                        }
+                    }
+                }
+            }
+        }
+        .accordion-body {
+            margin-top: -5px;
+            padding: 0 0 20px;
+        }
+    }
+}
+
+.faq-video-part {
+    img {
+        width: 100%;
+    }
+    .video-play {
+        @include abs-middle();
+    }
+}
+
+
+/* FAQ Area Three */
+.faq-three-left-part {
+    .experiences-years {
+        position: absolute;
+        left: 0;
+        top: 25%;
+        @include res-bl(ms) {
+            top: 38%;
+        }
+    }
+    .counter-item {
+        top: 15%;
+        right: 5%;
+        padding: 22px;
+        position: absolute;
+        background: #FFFFFF;
+        border-radius: 10px;
+        box-shadow: 0px 0px 55px rgba(0, 0, 0, 0.2);
+        .count-text {
+            color: var(--green-color);
+        }
+        @include res-bl(ms) {
+            top: 0;
+            right: 0;
+            padding: 15px;
+            .count-text {
+                font-size: 26px;
+            }
+            .counter-title {
+                font-size: 16px;
+            }
+        }
+    }
+    .project-complete {
+        margin: -85px auto 0;
+    }
+}

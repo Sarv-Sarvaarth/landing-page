@@ -1,0 +1,483 @@
+/*---------------------------------------
+    ## Common
+---------------------------------------*/
+.btn {
+    position: relative;
+    border-radius: 5px;
+    padding: 14px 25px;
+    border: 0;
+    z-index: 1;
+    color: white;
+    font-weight: 800;
+    display: inline-block;
+    text-transform: uppercase;
+    font-family: var(--heading-font);
+    background: var(--primary-color);
+    @include res-bl(sm) {
+        font-weight: 600;
+        padding: 12px 20px;
+    }
+    &:after {
+        content: '';
+        height: 100%;
+        width: 100%;
+        left: -5px;
+        bottom: -5px;
+        z-index: -1;
+        transition: 0.25s;
+        position: absolute;
+        border-radius: 5px;
+        border: 1px dashed var(--primary-color);
+    }
+    &:focus,
+    &:hover {
+        color: white;
+        box-shadow: none;
+        &:after {
+            left: 0;
+            bottom: 0;
+        }
+    }
+    &:active {
+        color: white;
+    }
+    &.btn--yellow {
+        background: var(--yellow-color);
+        &:after {
+            border-color: var(--yellow-color);
+        }
+    }
+    &.btn--green {
+        background: var(--green-color);
+        &:after {
+            border-color: var(--green-color);
+        }
+    }
+    &.btn--style-two {
+        &:after {
+            left: 0;
+            bottom: 0;
+        }
+        &:focus,
+        &:hover {
+            &:after {
+                left: -5px;
+                bottom: -5px;
+            }
+        }
+    }
+    &.ml-5 {
+        margin-left: 5px;
+    }
+}
+
+
+/* White text */
+.text-white {
+    h1, h2, h3, h4, h5, h6 {
+        color: white;
+    }
+}
+
+/* Read More */
+.read-more {
+    font-size: 15px;
+    font-weight: 700;
+    align-items: center;
+    display: inline-flex;
+    text-transform: uppercase;
+    font-family: var(--heading-font);
+    &:after {
+        content: '';
+        margin-left: 7px;
+        border-radius: 50%;
+        @include size(6px);
+        background: var(--primary-color);
+    }
+}
+
+.read-more-two {
+    font-weight: 700;
+    text-transform: uppercase;
+    text-decoration: underline;
+    color: var(--heading-color);
+    font-family: var(--heading-font);
+    &:hover {
+        text-decoration: underline;
+        color: var(--primary-color);
+    }
+}
+
+/*------------------------------------------------
+    ## Back Top
+------------------------------------------------*/
+.back-to-top {
+    position: fixed;
+    right: 30px;
+    bottom: 30px;
+    width: 44px;
+    height: 44px;
+    color: white;
+    background-color: var(--primary-color);
+    text-align: center;
+    line-height: 44px;
+    z-index: 99;
+    font-size: 25px;
+    cursor: pointer;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+    display: none;
+    animation: backto-top-bounce 4s infinite ease-in-out;
+}
+@-webkit-keyframes backto-top-bounce {
+  0% {
+    -webkit-transform: translateY(-4px);
+    transform: translateY(-5px); }
+  50% {
+    -webkit-transform: translateY(8px);
+    transform: translateY(10px); }
+  100% {
+    -webkit-transform: translateY(-4px);
+    transform: translateY(-5px); } 
+}
+
+@keyframes backto-top-bounce {
+  0% {
+    -webkit-transform: translateY(-4px);
+    transform: translateY(-5px); }
+  50% {
+    -webkit-transform: translateY(8px);
+    transform: translateY(10px); }
+  100% {
+    -webkit-transform: translateY(-4px);
+    transform: translateY(-5px); } 
+}
+
+
+/*-----------------------------------------
+    ## Preloader Css
+-------------------------------------------*/
+.pre-wrap{
+    position: fixed;
+    content: '';
+    transform: translate(-100%, -240%);
+    font-size:62px;
+}
+.preloader-inner {
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 999999999999;
+    background-color: #030724;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    .cancel-preloader{
+        position: absolute;
+        bottom: 30px;
+        right: 30px;
+       a{
+            background-color: white;
+            font-weight: 600;
+            text-transform: capitalize;
+            color: var(--primary-color);
+            width: 200px;
+            height: 50px;
+            text-align: center;
+            line-height: 50px;
+            border-radius: 30px;
+            display: block;
+            @include transition(all, 0.4s, ease);
+            &:hover{
+                background-color: var(--heading-color);
+                color: white;
+            }
+       }
+    }
+}
+.spinner {
+  margin: 120px auto;
+  width: 60px;
+  height: 60px;
+  position: relative;
+  text-align: center;
+  
+  -webkit-animation: sk-rotate 2.0s infinite linear;
+  animation: sk-rotate 2.0s infinite linear;
+}
+
+.dot1, .dot2 {
+  width: 60%;
+  height: 60%;
+  display: inline-block;
+  position: absolute;
+  top: 0;
+  background-color: var(--primary-color);
+  border-radius: 100%;
+  -webkit-animation: sk-bounce 2.0s infinite ease-in-out;
+  animation: sk-bounce 2.0s infinite ease-in-out;
+}
+
+.dot2 {
+  top: auto;
+  bottom: 0;
+  -webkit-animation-delay: -1.0s;
+  animation-delay: -1.0s;
+}
+
+@-webkit-keyframes sk-rotate { 100% { -webkit-transform: rotate(360deg) }}
+@keyframes sk-rotate { 100% { transform: rotate(360deg); -webkit-transform: rotate(360deg) }}
+
+@-webkit-keyframes sk-bounce {
+  0%, 100% { -webkit-transform: scale(0.0) }
+  50% { -webkit-transform: scale(1.0) }
+}
+
+@keyframes sk-bounce {
+  0%, 100% { 
+    transform: scale(0.0);
+    -webkit-transform: scale(0.0);
+  } 50% { 
+    transform: scale(1.0);
+    -webkit-transform: scale(1.0);
+  }
+}
+
+/*-----------------------------------------
+    Input & textarea
+------------------------------------------*/
+.form-group {
+    margin-bottom: 15px;
+    label {
+        font-size: 15px;
+        font-weight: 400;
+        margin-bottom: 5px;
+        font-family: var(--heading-font);
+    }
+    .form-control {
+        padding: 14px 18px;
+        border-radius: 10px;
+        background-color: transparent;
+        &:focus {
+            box-shadow: none;
+        }
+    }
+}
+
+/*-----------------------------------------
+    Social meda
+------------------------------------------*/
+.social-style-one {
+    flex-wrap: wrap;
+    display: inline-flex;
+    margin: 0 -7.5px -10px;
+    a {
+        color: #555555;
+        margin: 0 7.5px 10px;
+        @include circle(rgba(255, 255, 255, 0.05), 48px);
+        &:hover {
+            color: white;
+            background: var(--primary-color);
+        }
+    }
+}
+
+/*-----------------------------------------
+    ## List Styles
+------------------------------------------*/
+.list-style-one {
+    li {
+        display: flex;
+        margin-bottom: 15px;
+        align-items: center;
+        &:before {
+            flex: none;
+            content: '';
+            border-radius: 50%;
+            margin-right: 17px;
+            @include size(10px);
+            background: var(--primary-color);
+        }
+    }
+}
+
+.list-style-two {
+    li {
+        display: flex;
+        margin-bottom: 8px;
+        align-items: center;
+        &:before {
+            flex: none;
+            content: "\f14a";
+            margin-right: 10px;
+            color: var(--primary-color);
+            font-family: "Font Awesome 5 Free";
+        }
+    }
+}
+
+/*-----------------------------------------
+    ## ratting
+------------------------------------------*/
+.ratting {
+    i {
+        font-size: 20px;
+        margin-right: 5px;
+        color: var(--yellow-color);
+    }
+}
+
+/*-----------------------------------------
+    ## background
+------------------------------------------*/
+.bgc-gray {
+    background: var(--heading-color);
+}
+
+.bgc-black {
+    background: var(--black-color);
+}
+
+.bgc-lighter {
+    background: var(--lighter-color);
+}
+
+.bgs-cover {
+    background-size: cover;
+    background-position: center;
+}
+
+/*-----------------------------------------
+    ## Overlay 
+------------------------------------------*/
+.overlay {
+    @include overlay(black, 0.77);
+}
+
+/*-----------------------------------------
+    ## pagination 
+------------------------------------------*/
+.pagination {
+    display: flex;
+    flex-wrap: wrap;
+    text-align: center;
+    justify-content: center;
+    @include gapLR(margin, -7px);
+    .page-numbers {
+        margin-top: 10px;
+        line-height: 58px;
+        font-size: 25px;
+        font-weight: 500;
+        border-radius: 50%;
+        @include size(60px);
+        color: var(--heading-color);
+        @include gapLR(margin, 7px);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        .fa {
+            font-size: 0.9em;
+        }
+        &.current {
+            color: white;
+            background: var(--primary-color);
+        }
+        @include res-bl(lg) {
+            font-size: 22px;
+            line-height: 48px;
+            @include size(50px);
+        }
+        @include res-bl(sm) {
+            font-size: 16px;
+            line-height: 40px;
+            @include size(42px);
+        }
+    }
+    a.page-numbers:hover {
+        color: white;
+        background: var(--primary-color);
+    }
+}
+
+/* Slider Arrow */
+.slider-arrow {
+    button {
+        width: 48px;
+        height: 48px;
+        font-size: 22px;
+        transition: 0.5s;
+        line-height: 46px;
+        text-align: center;
+        border-radius: 3px;
+        background: transparent;
+        color: var(--primary-color);
+        border: 1px solid var(--primary-color);
+        &:hover,
+        &:focus {
+            color: white;
+            background: var(--primary-color);
+        }
+        &:not(:last-child) {
+            margin-right: 12px;
+        }
+    }
+}
+
+/* Slick Dots */
+.slick-dots {
+    display: flex;
+    justify-content: center;
+    @include gapLR(margin, -8px);
+    li {
+        @include gapLR(margin, 8px);
+        button {
+            border: none;
+            transition: 0.5s;
+            overflow: hidden;
+            border-radius: 50%;
+            text-indent: 100px;
+            @include size(18px);
+            background: #F2F2F2;
+        }
+        &.slick-active {
+            button {
+                background: var(--primary-color);
+            }
+        }
+    }
+}
+
+/* positioning */
+.rel {
+    position: relative;
+}
+
+.z-1 {
+    z-index: 1;
+}
+.z-2 {
+    z-index: 2;
+}
+.z-3 {
+    z-index: 3;
+}
+.z-4 {
+    z-index: 4;
+}
+.z-5 {
+    z-index: 5;
+}
+
+.dropdown-item.active,
+.dropdown-item:active {
+    background-color: var(--primary-color);
+}
+
+.error-page-area {
+    .section-title {
+        p {
+            font-size: 20px;
+            line-height: 1.5;
+            @include container(450px);
+        }
+    }
+}

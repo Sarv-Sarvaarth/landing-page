@@ -1,0 +1,197 @@
+/*------------------------------------------------
+    ## Testimonials
+------------------------------------------------*/
+.testimonial-content-item {
+    .icon {
+        line-height: 1;
+        font-size: 80px;
+        margin-bottom: 45px;
+        color: var(--green-color);
+        @include res-bl(md) {
+            margin-bottom: 0;
+        }
+    }
+    .text {
+        opacity: 0.7;
+        font-size: 36px;
+        font-weight: 600;
+        line-height: 1.35;
+        font-style: italic;
+        margin-bottom: 55px;
+        font-family: var(--heading-font);
+        @include res-bl(md) {
+            font-size: 28px;
+            margin-bottom: 35px;
+        }
+        @include res-bl(sm) {
+            font-size: 22px;
+            line-height: 1.5;
+        }
+        @include res-bl(xs) {
+            font-size: 18px;
+        }
+    }
+    h4 {
+        margin-bottom: 10px;
+        @include res-bl(sm) {
+            font-size: 22px;
+            margin-bottom: 5px;
+        }
+    }
+    .designation {
+        font-family: var(--heading-font);
+        @include res-ab(sm) {
+            font-size: 20px;
+        }
+    }
+}
+
+.testimonial-thumb-slider {
+    height: 65px;
+    max-width: 170px;
+    margin-top: 70px;
+    @include res-bl(md) {
+        margin-top: 30px;
+    }
+    .testimonial-thumb-item {
+        @include gapLR(margin, 7px);
+        img {
+            cursor: pointer;
+            transition: 0.5s;
+            border-radius: 50%;
+            @include size(38px);
+        }
+        &.slick-current {
+            img {
+                @include size(64px);
+            }
+        }
+    }
+    .slick-track {
+        display: flex;
+        align-items: center;
+    }
+}
+
+/* Testimonial Style Two */
+.testimonial-two-image {
+    padding-left: 5%;
+    .circle-shape {
+        position: absolute;
+        z-index: -1;
+        left: 0;
+        bottom: 2%;
+    }
+}
+
+.testimonial-style-two {
+    padding-right: 22%;
+    @include res-bl(md) {
+        padding-right: 60px;
+    }
+    .testimonial-content-item {
+        .icon {
+            margin-bottom: 30px;
+        }
+        .text {
+            font-size: 24px;
+            font-weight: 700;
+            line-height: 1.71;
+            margin-bottom: 40px;
+            color: var(--heading-color);
+            font-family: var(--base-font);
+            @include res-bl(sm) {
+                font-size: 20px;
+            }
+            @include res-bl(xs) {
+                font-size: 18px;
+            }
+        }
+        .ratting {
+            margin-bottom: 15px;
+        }
+        .designation {
+            font-size: 18px;
+        }
+    }
+    .testimonial-thumb-two {
+        position: absolute;
+        width: 50px;
+        top: 50%;
+        right: 0;
+        transform: translateY(-33%);
+        @include res-bl(md) {
+            top: 35%;
+        }
+        .testimonial-thumb-item {
+            display: flex;
+            margin: 10px 0;
+            justify-content: center;
+            img {
+                opacity: 0.65;
+                transition: 0.5s;
+                cursor: pointer;
+                border-radius: 50%;
+                @include size(35px);
+            }
+            &.slick-current {
+                img {
+                    opacity: 1;
+                    @include size(48px);
+                    border: 2px solid var(--primary-color);
+                }
+            }
+        }
+    }
+}
+
+
+/* Testimonials Style Three */
+.testimonials-bg {
+    position: absolute;
+    z-index: -1;
+    left: 0;
+    top: 0;
+    @include size(100%, 66%);
+}
+
+.testimonial-item-three {
+    text-align: center;
+    border-radius: 5px;
+    transition: 0.5s;
+    margin-top: 80px;
+    background: #FFFFFF;
+    padding: 0 22px 40px;
+    box-shadow: 0px 0px 50px rgba(0, 0, 0, 0.1);
+    .author {
+        margin-bottom: -10px;
+        transform: translateY(-50%);
+        img {
+            border-radius: 50%;
+            @include size(100px);
+            border: 4px solid var(--primary-color);
+        }
+    }
+    .name {
+        margin-bottom: 3px;
+        @include res-bl(xs) {
+            font-size: 22px;
+        }
+    }
+    .designation {
+        font-size: 18px;
+    }
+    .text {
+        margin-top: 10px;
+        font-weight: 500;
+        font-style: italic;
+        margin-bottom: 20px;
+        line-height: 1.95;
+        @include res-ab(xs) {
+            font-size: 18px;
+        }
+    }
+    &:hover {
+        box-shadow: 0px 0px 90px rgba(0, 0, 0, 0.25);
+    }
+}

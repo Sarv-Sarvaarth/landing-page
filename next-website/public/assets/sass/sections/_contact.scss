@@ -1,0 +1,255 @@
+/*------------------------------------------------
+    ## Contact
+------------------------------------------------*/
+
+.form-style-one {
+    label {
+        cursor: pointer;
+    }
+    .form-control {
+        color: #777777;
+        border-color: #919191;
+        &::placeholder {
+            color: #777777;
+        }
+        &::-webkit-calendar-picker-indicator {
+            filter: invert(0.4);
+        }
+    }
+}
+
+/* Form Style Two */
+.form-style-two {
+    label {
+        cursor: pointer;
+    }
+    .form-control,
+    .single-select {
+        border: none;
+        width: 100%;
+        height: auto;
+        color: #727272;
+        font-size: 16px;
+        line-height: 1.5;
+        padding: 18px 30px;
+        background: rgba(255, 255, 255, 0.06);
+        &::placeholder {
+            color: #727272;
+        }
+        &::-webkit-calendar-picker-indicator {
+            filter: invert(0.35);
+        }
+        &:focus {
+            border: none;
+        }
+    }
+    .nice-select:after {
+        right: 30px;
+        margin-top: -6px;
+        @include size(10px);
+    }
+}
+
+.volunteer-left-image {
+    padding-right: 10%;
+    img:not(.shape) {
+        border-radius: 50%;
+    }
+    .circle {
+        right: 0;
+        bottom: 6%;
+        max-width: 40%;
+        position: absolute;
+        border: 10px solid var(--black-color);
+    }
+    .shape {
+        position: absolute;
+        right: 100%;
+        z-index: -1;
+        top: 0;
+        max-width: 10%;
+        @include res-bl(md) {
+            left: -10px;
+        }
+    }
+}
+
+
+/* Donation Form */
+.donation-form {
+    padding: 35px 30px;
+    background: #FEF2F1;
+    border-radius: 10px;
+    @include res-bl(xs) {
+        @include gapLR(padding, 20px);
+    }
+    h5 {
+        font-size: 20px;
+        margin-bottom: 11px;
+    }
+    .form-group {
+        > label {
+            color: black;
+            font-size: 15px;
+            cursor: pointer;
+        }
+        .form-control {
+            border: none;
+            background: white;
+            padding: 18px 30px;
+            &:focus {
+                border: none;
+            }
+        }
+    }
+    .custom-radio-price {
+        display: flex;
+        flex-wrap: wrap;
+        margin-bottom: 25px;
+        align-items: center;
+        .radio-item {
+            position: relative;
+            margin-bottom: 10px;
+            label {
+                cursor: pointer;
+                font-size: 15px;
+                font-weight: 600;
+                transition: 0.35s;
+                margin-right: 13px;
+                padding: 10px 20px;
+                border-radius: 3px;
+                background: #FFFFFF;
+                color: var(--heading-color);
+                border: 1px solid rgba(0, 0, 0, 0.1);
+                @include res-bl(sm) {
+                    padding: 5px 15px;
+                }
+            }
+            input {
+                z-index: -1;
+                position: absolute;
+                &:checked {
+                    ~ label {
+                        color: white;
+                        background: var(--primary-color);
+                    }
+                }
+            }
+        }
+    }
+    .custom-radios {
+        display: flex;
+        flex-wrap: wrap;
+        margin-bottom: 25px;
+        align-items: center;
+        .form-check-input {
+            margin-top: 7px;
+            margin-right: 5px;
+            @include size(15px);
+            background: transparent;
+            border: 4px solid rgba(0, 0, 0, 0.4);
+            &:focus,
+            &:checked {
+                box-shadow: none;
+                border-color: var(--primary-color);
+            }
+        }
+        .radio-item {
+            margin-bottom: 5px;
+            margin-right: 18px;
+        }
+        label {
+            cursor: pointer;
+            font-size: 18px;
+        }
+    }
+    .total-price {
+        flex-wrap: wrap;
+        @include flexcenter(space-between);
+        .price {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--primary-color);
+            font-family: var(--heading-font);
+        }
+        .btn {
+            @include gapTB(margin, 10px);
+        }
+    }
+}
+
+/* Contact Page */
+.contact-page-area {
+    .faq-three-left-part {
+        margin-left: -100px;
+        transform: translate(-65px);
+        @include res-bl(lb) {
+            margin-left: 65px;
+        }
+        @include res-bl(lg) {
+            margin-left: 0;
+            transform: translate(0);
+        }
+    }
+}
+
+.contact-page-form {
+    position: relative;
+    z-index: 1;
+    &:before {
+        content: '';
+        top: 0;
+        left: -65px;
+        z-index: -1;
+        position: absolute;
+        background: #FEF2F1;
+        @include size(calc(50vw + 65px), 100%);
+        @include res-bl(lg) {
+            left: 50%;
+            transform: translate(-50%);
+            width: calc(100vw + 130px);
+        }
+    }
+    .form-control {
+        background: white;
+    }
+}
+
+.contact-info-item {
+    text-align: center;
+    margin-bottom: 30px;
+    .contact-info__icon {
+        font-size: 30px;
+        line-height: 70px;
+        border-radius: 50%;
+        @include size(72px);
+        background: #F8FBFF;
+        margin-bottom: 15px;
+        display: inline-block;
+        border: 1px solid #F2F2F2;
+        color: var(--primary-color);
+    }
+    h5 {
+        font-size: 20px;
+        margin-bottom: 15px;
+    }
+    &.contact-info-item--green {
+        --primary-color: var(--green-color);
+    }
+    &.contact-info-item--yellow {
+        --primary-color: var(--yellow-color);
+    }
+}
+
+.our-location {
+    iframe {
+        height: 645px;
+        @include res-bl(lg) {
+            height: 500px;
+        }
+        @include res-bl(sm) {
+            height: 350px;
+        }
+    }
+    margin-bottom: -10px;
+}

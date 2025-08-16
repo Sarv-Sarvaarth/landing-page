@@ -1,0 +1,47 @@
+/*------------------------------------------------
+    ## Banner
+------------------------------------------------*/
+
+.page-banner-area {
+    &:before {
+        opacity: 0.7;
+    }
+}
+
+.breadcrumb-inner {
+    .page-title {
+        margin-bottom: 5px;
+        text-transform: capitalize;
+        @include res-ab(lg) {
+            font-size: 66px;
+        }
+        @include res-bl(sm) {
+            font-size: 44px;
+        }
+        @include res-bl(xs) {
+            font-size: 36px;
+        }
+    }
+    .page-list {
+        font-size: 23px;
+        flex-wrap: wrap;
+        font-weight: 700;
+        margin-bottom: 12px;
+        @include flexcenter(center);
+        @include res-bl(sm) {
+            font-size: 20px;
+        }
+        @include res-bl(xs) {
+            font-size: 18px;
+        }
+        li {
+            &:not(:last-child) {
+                &:after {
+                    content: '//';
+                    letter-spacing: 2px;
+                    @include gapLR(margin, 10px);
+                }
+            }
+        }
+    }
+}

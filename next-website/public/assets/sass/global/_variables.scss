@@ -1,0 +1,30 @@
+/*-----------------
+    # Variables
+-----------------*/
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans&family=Nunito:wght@400;600;700;800&family=Pacifico&display=swap');
+
+$h1-size: 90px;
+$h2-size: 50px;
+$h3-size: 40px;
+$h4-size: 28px;
+$h5-size: 24px;
+$h6-size: 16px;
+
+// A map of breakpoints.
+$breakpoints: (
+    xs: 376px,
+    ms: 480px,
+    sm: 576px,
+    md: 768px,
+    lg: 992px,
+    xl: 1200px,
+    xxl: 1400px,
+    lp: 1300px,
+    lb: 1600px,
+);
+
+//  transition
+$transition: all .3s ease-in;
+$transition-long: all .5s ease-in;
+$box-shadow: 0px 3px 20px rgba(0, 33, 71, 0.05);
+$box-shadow2: 0px 10px 30px rgba(0, 33, 71, 0.12);

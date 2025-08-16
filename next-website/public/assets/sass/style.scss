@@ -1,0 +1,79 @@
+/*
+Theme Name: Charite
+Theme URI: https://webtend.com/demo/html/charite/
+Author: WebTend
+Author URI: https://webtend.com/demo/html/charite/
+Description: Charite - Charity & Donation Html Template
+Version: 1.0.0
+*/
+/*--------------------------------------------------------------
+>>> TABLE OF CONTENTS:
+----------------------------------------------------------------
+# Global
+    ## Variables
+    ## Mixins
+    ## Extents
+    ## Global
+    ## Common
+    ## Animate
+
+# Sections
+    ## Nav Bar
+    ## Section Title
+    ## Hero
+    ## Banner
+    ## Search
+    ## Causes
+    ## About
+    ## Counters
+    ## Why Choose
+    ## Features
+    ## Volunteers
+    ## Events
+    ## Testimonials
+    ## Blog
+    ## FAQs
+    ## CTA
+    ## Client Logo
+    ## Videos
+    ## Portfolio
+    ## Contact
+    ## Shapes
+    ## Widgets
+    ## Footer
+
+--------------------------------------------------------------*/
+
+//== Global Design
+@import "global/_variables";
+@import "global/_mixins";
+@import "global/_extends";
+@import "global/_global";
+@import "global/_common";
+@import "global/_animate";
+
+//== Pages
+//== Sections 
+@import "sections/_navbar";
+@import "sections/_section-title";
+@import "sections/_hero";
+@import "sections/_banner";
+@import "sections/_search";
+@import "sections/_causes";
+@import "sections/_about";
+@import "sections/_counters";
+@import "sections/_why-choose";
+@import "sections/_features";
+@import "sections/_volunteers";
+@import "sections/_events";
+@import "sections/_testimonials";
+@import "sections/_blog";
+@import "sections/_faqs";
+@import "sections/_cta";
+@import "sections/_client-logo";
+@import "sections/_videos";
+@import "sections/_portfolio";
+@import "sections/_contact";
+@import "sections/_shape";
+@import "sections/_widgets";
+@import "sections/_footer";

@@ -1,0 +1,94 @@
+/*--------------------------------------------------
+    ## Hero
+---------------------------------------------------*/
+
+.hero-area {
+    @include res-bl(xxl) {
+        padding-top: 110px;
+        padding-bottom: 120px;
+    }
+    @include res-bl(lg) {
+        margin-top: 66px;
+    }
+}
+.hero-content {
+    h1 {
+        margin-bottom: 60px;
+        text-transform: capitalize;
+        @include res-bl(xxl) {
+            font-size: 75px;
+        }
+        @include res-bl(xl) {
+            font-size: 66px;
+        }
+        @include res-bl(lg) {
+            font-size: 55px;
+            margin-bottom: 35px;
+        }
+        @include res-bl(md) {
+            font-size: 45px;
+            line-height: 1.25;
+        }
+        @include res-bl(sm) {
+            font-size: 40px;
+        }
+        @include res-bl(xs) {
+            font-size: 35px;
+        }
+        span {
+            z-index: 1;
+            position: relative;
+            display: inline-block;
+            &:after {
+                position: absolute;
+                z-index: -1;
+                content: '';
+                left: 0;
+                top: 90%;
+                @include size(100%, 30%);
+                background-image: url(../img/shapes/title-underline.png);
+                background-size: 100% 100%;
+            }
+        }
+    }
+    p {
+        @include container(775px);
+        @include res-ab(sm) {
+            font-size: 20px;
+            line-height: 30px;
+        }
+    }
+    .hero-btns {
+        display: flex;
+        flex-wrap: wrap;
+        margin-left: -10px;
+        margin-right: -10px;
+        justify-content: center;
+        .btn {
+            margin: 10px 10px 0;
+        }
+    }
+}
+
+
+/* Hero area two */
+.hero-area-two {
+    .hero-content {
+        @include container(910px);
+    }
+    &:before {
+        opacity: 0.6;
+    }
+    .hero-shape-two {
+        position: absolute;
+        bottom: 90%;
+        right: 100%;
+    }
+}
+
+/* Hero area three */
+.hero-area-three {
+    &:before {
+        opacity: 0.6;
+    }
+}

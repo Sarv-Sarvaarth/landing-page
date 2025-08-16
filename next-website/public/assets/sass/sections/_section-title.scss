@@ -1,0 +1,68 @@
+/*------------------------------------------------
+    ## Section Title
+------------------------------------------------*/
+.section-title {
+    margin-top: -5px;
+    .section-title__subtitle {
+        font-size: 24px;
+        display: inline-block;
+        color: var(--primary-color);
+        font-family: var(--script-font);
+    }
+    h2, h3 {
+        margin-bottom: 30px;
+        text-transform: capitalize;
+        span {
+            z-index: 1;
+            position: relative;
+            display: inline-block;
+            &:after {
+                position: absolute;
+                z-index: -1;
+                content: '';
+                left: 0;
+                top: 74%;
+                @include size(100%, 55%);
+                background-image: url(../img/shapes/title-underline.png);
+                background-size: 100% 100%;
+            }
+        }
+    }
+    h2 {
+        @include res-bl(xxl) {
+            font-size: 48px;
+        }
+        @include res-bl(xl) {
+            font-size: 40px;
+        }
+        @include res-bl(sm) {
+            font-size: 35px;
+        }
+        @include res-bl(xs) {
+            font-size: 30px;
+        }
+        span {
+            &:after {
+                height: 66%;
+            }
+        }
+    }
+    h3 {
+        @include res-bl(sm) {
+            font-size: 35px;
+        }
+        @include res-bl(xs) {
+            font-size: 30px;
+        }
+    }
+    p {
+        font-size: 18px;
+    }
+    &.for-hide-summary {
+        @include res-bt(lg, xl) {
+            p {
+                display: none;
+            }
+        }
+    }
+}

@@ -1,0 +1,110 @@
+/*---------------------------------------------------
+	## Shapes
+----------------------------------------------------*/
+
+.urgent-cause-shapes {
+    img {
+        position: absolute;
+        z-index: -1;
+        &.one {
+            left: 0;
+            top: 15%;
+        }
+        &.two {
+            left: 5%;
+            bottom: 20%;
+        }
+        &.three {
+            right: 4%;
+            top: 15%;
+        }
+    }
+}
+
+/* our cause shapes */
+.our-cause-shapes {
+    .one {
+        position: absolute;
+        z-index: -1;
+        left: 10%;
+        top: 26%;
+    }
+}
+
+/* CTA Area Shapes */
+.cta-area-shapes {
+    img {
+        position: absolute;
+        z-index: -1;
+        max-width: 35%;
+        max-height: 80%;
+        &.one {
+            left: 3%;
+            top: 10%;
+        }
+        &.two {
+            right: 0;
+            bottom: 5%;
+        }
+    }
+}
+
+/* Blog Area Shapes */
+.blog-shape-one {
+    z-index: -1;
+    left: 10%;
+    top: 30%;
+    position: absolute;
+}
+
+/* Feature Shapes */
+.feature-shapes {
+    .one {
+        position: absolute;
+        bottom: 8%;
+        right: 4%;
+        z-index: -1;
+    }
+}
+
+/* become volunteer Shapes */
+.become-volunteer-shapes {
+    img {
+        z-index: -1;
+        max-width: 45%;
+        position: absolute;
+        &.one {
+            left: 0;
+            top: 7%;
+        }
+        &.two {
+            right: 0;
+            bottom: -20%;
+        }
+    }
+}
+
+/* volunteer Shapes */
+.valunteet-shapres {
+    img {
+        z-index: -1;
+        max-width: 10%;
+        position: absolute;
+        &.one {
+            left: 0;
+            top: 25%;
+        }
+        &.two {
+            left: 5%;
+            bottom: 22%;
+        }
+        &.three {
+            right: 5%;
+            top: 28%;
+        }
+        &.four {
+            right: 2%;
+            bottom: 24%;
+        }
+    }
+}

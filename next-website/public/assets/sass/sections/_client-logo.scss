@@ -1,0 +1,18 @@
+/*------------------------------------------------
+    ## Client Logo
+------------------------------------------------*/
+
+.client-logo-wrap {
+    text-align: center;
+    @include gapLR(margin, -15px);
+    .slick-track {
+        display: flex;
+        align-items: center;
+    }
+    .client-logo-item {
+        @include gapLR(margin, 15px);
+        img {
+            display: inline-block;
+        }
+    }
+}

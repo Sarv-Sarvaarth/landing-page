@@ -1,0 +1,67 @@
+/*------------------------------------------------
+    ## Why Choose
+------------------------------------------------*/
+
+.why-choose-area {
+    z-index: 1;
+    position: relative;
+    background: #1e1e1e;
+    &:before {
+        z-index: -1;
+        opacity: 0.02;
+        background: url(../img/background/why-choose-bg.jpg) no-repeat center/cover;
+    }
+}
+
+.vission-mission-tab {
+    max-width: 500px;
+    .nav {
+        li {
+            margin: 0 10px 10px 0;
+            button {
+                color: white;
+                border: none;
+                font-weight: 800;
+                padding: 7px 20px;
+                border-radius: 5px;
+                font-family: var(--heading-font);
+                background: rgba(255, 255, 255, 0.05);
+                &.active {
+                    background: var(--primary-color);
+                }
+            }
+        }
+    }
+}
+
+.why-choose-video {
+    z-index: 1;
+    margin-bottom: 15px;
+    position: relative;
+    padding: 0 30px 12px 0;
+    &:after {
+        width: 90%;
+        content: '';
+        height: 50%;
+        right: 0;
+        bottom: 0;
+        z-index: -1;
+        position: absolute;
+        border-radius: 20px;
+        border: 1px dashed var(--yellow-color);
+        transform: skewY(3deg);
+    }
+    .video img {
+        width: 100%;
+        border-radius: 20px;
+        clip-path: polygon(0 0, 100% 0, 100% 100%, 0 90%);
+    }
+    .video-play--one {
+        @include abs-middle();
+    }
+    .leaf-shape {
+        position: absolute;
+        right: 101%;
+        bottom: 98%;
+    }
+}

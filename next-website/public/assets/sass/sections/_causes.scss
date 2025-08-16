@@ -1,0 +1,414 @@
+/*------------------------------------------------
+    ## Causes
+------------------------------------------------*/
+
+.urgent-cause-area {
+    &:before {
+        opacity: 0.9;
+        background: #FAF6F3;
+    }
+}
+
+.urgent-cause-content {
+    .section-title {
+        h3 {
+            @include res-ab(md) {
+                font-size: 37px;
+            }
+        }
+    }
+}
+
+.cause-item {
+    padding: 20px;
+    background: white;
+    border-radius: 5px;
+    margin-bottom: 30px;
+    box-shadow: 0px 0px 50px rgba(0, 0, 0, 0.1);
+    .image {
+        margin-bottom: 25px;
+        img {
+            width: 100%;
+            border-radius: 10px
+        }
+    }
+    .content {
+        h5 {
+            font-size: 20px;
+            margin-bottom: 15px;
+        }
+        p {
+            font-size: 15px;
+        }
+        .cause-price {
+            @include flexcenter(space-between);
+            font-weight: 700;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+            font-family: var(--heading-font);
+        }
+        .progress {
+            height: 8px;
+            overflow: initial;
+            position: relative;
+            border-radius: 5px;
+            margin-bottom: 40px;
+            background-color: #EEEEEE;
+            .progress-bar {
+                overflow: initial;
+                top: 0;
+                left: 0;
+                height: 100%;
+                position: absolute;
+                border-radius: 5px 0 0 5px;
+                background-color: var(--primary-color);
+                &:after {
+                    content: '';
+                    position: absolute;
+                    top: -3.5px;
+                    right: 0;
+                    @include size(15px);
+                    border-radius: 50%;
+                    background: white;
+                    outline: 1px solid white;
+                    border: 5px solid var(--primary-color);
+                }
+                &.progress-bar--yellow {
+                    background-color: var(--yellow-color);
+                    &:after {
+                        border-color: var(--yellow-color);
+                    }
+                }
+                &.progress-bar--green {
+                    background-color: var(--green-color);
+                    &:after {
+                        border-color: var(--green-color);
+                    }
+                }
+            }
+            
+        }
+        .cause-btn {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+    }
+}
+
+/* Urgent Causes Two */
+.urgent-cause-right-content {
+    .cause-price {
+        flex-wrap: wrap;
+        font-weight: 700;
+        max-width: 525px;
+        margin-bottom: 10px;
+        font-family: var(--heading-font);
+        @include flexcenter(space-between);
+        @include res-ab(xs) {
+            font-size: 20px;
+        }
+    }
+    .progress {
+        height: 12px;
+        max-width: 525px;
+        overflow: initial;
+        position: relative;
+        border-radius: 5px;
+        margin-bottom: 30px;
+        background-color: #F6A29D;
+        .progress-bar {
+            overflow: initial;
+            top: 0;
+            left: 0;
+            height: 100%;
+            position: absolute;
+            border-radius: 5px 0 0 5px;
+            background-color: var(--primary-color);
+            &:after {
+                content: '';
+                position: absolute;
+                top: -4px;
+                right: 0;
+                @include size(20px);
+                border-radius: 50%;
+                background: white;
+                outline: 1px solid white;
+                border: 7px solid var(--primary-color);
+            }
+        }
+    }
+    .urgent-cause-btn {
+        .btn {
+            margin-top: 20px;
+            margin-left: 5px;
+            &:not(:last-child) {
+                margin-right: 25px;
+            }
+        }
+    }
+}
+
+.urgent-cause-inner {
+    @include res-bl(sm) {
+        @include gapLR(padding, 25px);
+    }
+}
+
+/* Cause style two */
+.cause-two-item {
+    margin-bottom: 30px;
+    .image {
+        img {
+            width: 100%;
+            border-radius: 5px 5px 0px 0px;
+        }
+    }
+    .content {
+        background: #FAFAFA;
+        padding: 0 30px 50px;
+        border-radius: 0px 0px 5px 5px;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        @include res-bl(xs) {
+            @include gapLR(padding, 20px);
+        }
+        h4 {
+            margin-bottom: 15px;
+            @include res-bl(xxl) {
+                font-size: 27px;
+            }
+            @include res-bl(xs) {
+                font-size: 22px;
+            }
+        }
+        .cause-price {
+            flex-wrap: wrap;
+            font-size: 18px;
+            font-weight: 800;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+            font-family: var(--heading-font);
+            @include flexcenter(space-between);
+            @include res-bl(ms) {
+                font-size: 16px;
+            }
+        }
+        p {
+            margin-bottom: 25px;
+        }
+        .btn {
+            margin-left: 5px;
+        }
+    }
+    .circle-progress {
+        z-index: 1;
+        height: 88px;
+        line-height: 1;
+        background: white;
+        position: relative;
+        border-radius: 50%;
+        width: max-content;
+        margin: -50px auto 20px;
+        b,
+        &:after,
+        &:before {
+            position: absolute;
+            content: '';
+            left: 50%;
+            top: 50%;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+        b {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--heading-color);
+            font-family: var(--heading-font);
+        }
+        &:before {
+            z-index: -2;
+            @include size(120%);
+            background: transparent;
+            border: 11px solid #FAFAFA;
+        }
+        &:after {
+            z-index: -1;
+            @include size(75%);
+            background: #FEEDEC;
+        }
+    }
+    &.cause-yellow {
+        .cause-price {
+            color: var(--yellow-color);
+        }
+        .circle-progress {
+            &:after {
+                background: #FFF7EB;
+            }
+        }
+    }
+    &.cause-green {
+        .cause-price {
+            color: var(--green-color);
+        }
+        .circle-progress {
+            &:after {
+                background: #E8F7F0;
+            }
+        }
+    }
+}
+
+/* Cause style two */
+.skillbar {
+    height: 10px;
+    position: relative;
+    background: #FA948D;
+    .skill-bar-percent {
+        top: -40px;
+        line-height: 1;
+        font-weight: 600;
+        font-size: 15px;
+        color: white;
+        padding: 5px;
+        margin-left: -22px;
+        border-radius: 3px;
+        position: absolute;
+        background: var(--primary-color);
+        font-family: var(--heading-font);
+        &:after {
+            position: absolute;
+            content: '';
+            left: 15px;
+            top: 100%;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 6px solid var(--primary-color);
+        }
+    }
+    .skillbar-bar {
+        width: 0;
+        height: 10px;
+        background-color: var(--primary-color);
+    }
+}
+
+.cause-three-item {
+    overflow: hidden;
+    border-radius: 5px;
+    margin-bottom: 30px;
+    .image {
+        img {
+            width: 100%;
+        }
+        .skillbar {
+            margin-top: -10px;
+        }
+    }
+    .content {
+        background: white;
+        padding: 30px 30px 45px;
+        h4 {
+            @include res-bl(ms) {
+                font-size: 22px;
+                margin-bottom: 15px;
+            }
+        }
+        .cause-price {
+            flex-wrap: wrap;
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            font-family: var(--heading-font);
+            @include flexcenter(space-between);
+            span {
+                display: flex;
+                font-size: 15px;
+                margin-bottom: 5px;
+                align-items: center;
+                i {
+                    font-size: 17px;
+                    margin-right: 10px;
+                    color: var(--primary-color);
+                }
+            }
+        }
+        .btn {
+            margin-left: 5px;
+        }
+    }
+    &.item--green {
+        .skillbar {
+            background: #BCE9D3;
+        }
+    }
+    &.item--yellow {
+        .skillbar {
+            background: #FFE2B2;
+        }
+    }
+}
+
+
+/* Causes page slider */
+.course-page-slider {
+    @include gapLR(margin, -15px);
+    .cause-two-item {
+        @include gapLR(margin, 15px);
+    }
+    .slick-dots {
+        margin-top: 50px;
+    }
+}
+
+
+/* Cause details */
+.cause-details-content {
+    .title {
+        @include res-bl(md) {
+            font-size: 35px;
+        }
+        @include res-bl(sm) {
+            font-size: 30px;
+        }
+    }
+    h4 {
+        @include res-bl(sm) {
+            font-size: 22px;
+        }
+    }
+    .cause-price {
+        flex-wrap: wrap;
+        font-weight: 700;
+        margin-bottom: 10px;
+        font-family: var(--heading-font);
+        @include flexcenter(space-between);
+    }
+    .progress {
+        height: 12px;
+        overflow: initial;
+        position: relative;
+        border-radius: 5px;
+        margin-bottom: 30px;
+        background-color: #F6A29D;
+        .progress-bar {
+            overflow: initial;
+            top: 0;
+            left: 0;
+            height: 100%;
+            position: absolute;
+            border-radius: 5px 0 0 5px;
+            background-color: var(--primary-color);
+            &:after {
+                content: '';
+                position: absolute;
+                top: -4px;
+                right: 0;
+                @include size(20px);
+                border-radius: 50%;
+                background: white;
+                outline: 1px solid white;
+                border: 7px solid var(--primary-color);
+            }
+        }
+    }
+}

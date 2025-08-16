@@ -1,0 +1,288 @@
+/*------------------------------------------------
+    ## Volunteers
+------------------------------------------------*/
+
+/* Become a volunteer */
+.become-volunteer-area {
+    background: #1E1E1E;
+}
+
+.volunteer-image {
+    @include res-ab(xxl) {
+        margin-left: -22%;
+    }
+}
+
+/* Valunter Style One */
+.valunteer-item {
+    overflow: hidden;
+    text-align: center;
+    border-radius: 8px;
+    margin-bottom: 30px;
+    &:hover {
+        .valunteer-item__img {
+            &:before {
+                height: 100%;
+            }
+        }
+    }
+}
+
+.valunteer-item__img {
+    position: relative;
+    margin-bottom: 22px;
+    img {
+        width: 100%;
+    }
+    .share {
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        z-index: 2;
+        button {
+            height: 80px;
+            width: 80px;
+            color: white;
+            border: none;
+            font-size: 25px;
+            line-height: 80px;
+            background: var(--primary-color);
+        }
+        .share__socials {
+            left: 12px;
+            opacity: 0;
+            bottom: 99%;
+            display: flex;
+            transition: 0.5s;
+            visibility: hidden;
+            position: absolute;
+            padding-bottom: 25px;
+            flex-direction: column;
+        }
+        &:hover {
+            .share__socials {
+                opacity: 1;
+                visibility: visible;
+            }
+        }
+    }
+    &:before {
+        position: absolute;
+        content: '';
+        width: 100%;
+        height: 0;
+        left: 0;
+        bottom: 0;
+        transition: 0.5s;
+        background: linear-gradient(180deg, transparent 0%, var(--primary-color) 116.19%);
+    }
+}
+
+.share__socials {
+    a {
+        margin: 5px;
+        color: white;
+        display: inline-block;
+        @include circle(var(--primary-color), 40px);
+        &.twitter {
+            background: #57BFE6;
+        }
+        &.facebook {
+            background: #3F7BC7;
+        }
+    }
+}
+
+.valunteer-item__designation {
+    padding: 27px 15px;
+    text-transform: capitalize;
+    background: url(../img/valunteer/valunteer-des-bg.jpg) no-repeat center/cover;
+    h5 {
+        color: white;
+        margin-bottom: 2px;
+    }
+    span {
+        color: white;
+        font-size: 18px;
+        font-family: var(--heading-font);
+    }
+}
+
+.valunteer-item--green {
+    .valunteer-item__img {
+        &:before {
+            background: linear-gradient(180deg, transparent 0%, var(--green-color) 116.19%);
+        }
+        .share button {
+            background: var(--green-color);
+        }
+    }
+    .valunteer-item__designation {
+        background-image: url(../img/valunteer/valunteer-des-bg-green.jpg);
+    }
+}
+
+.valunteer-item--yellow {
+    .valunteer-item__img {
+        &:before {
+            background: linear-gradient(180deg, transparent 0%, var(--yellow-color) 116.19%);
+        }
+        .share button {
+            background: var(--yellow-color);
+        }
+    }
+    .valunteer-item__designation {
+        background-image: url(../img/valunteer/valunteer-des-bg-yellow.jpg);
+    }
+}
+
+/* Volunteer Style Two */
+.valunteer-two-item {
+    margin-bottom: 30px;
+    .valunteer-two-item__img {
+        img {
+            width: 100%;
+            border-radius: 5px;
+        }
+    }
+    .valunteer-two-item__des {
+        margin-left: 9%;
+        transition: 0.5s;
+        margin-top: -50px;
+        position: relative;
+        padding: 25px 25px 20px;
+        background: var(--lighter-color);
+        border-left: 8.5px solid var(--primary-color);
+        h5 {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+        span {
+            font-size: 18px;
+            text-transform: capitalize;
+        }
+        &.valunteer-two-item__des--yellow {
+            border-color: var(--yellow-color);
+        }
+        &.valunteer-two-item__des--green {
+            border-color: var(--green-color);
+        }
+    }
+    &:hover {
+        .valunteer-two-item__des {
+            transform: translateY(-15px);
+        }
+    }
+}
+
+/* Volunteer Style Three */
+.valunteer-item--three {
+    position: relative;
+    .valunteer-item__img {
+        margin-bottom: 0;
+        &:before {
+            background: linear-gradient(180deg, transparent -19.55%, var(--green-color) 79.89%);
+        }
+    }
+    .valunteer-item__designation {
+        position: absolute;
+        width: 100%;
+        left: 0;
+        opacity: 0;
+        bottom: 0;
+        transition: 0.5s;
+        background: transparent;
+        h4 {
+            color: white;
+            margin-bottom: 5px;
+            @include res-bl(xxl) {
+                font-size: 25px;
+            }
+        }
+        .share__socials {
+            margin-top: 15px;
+        }
+    }
+    &:hover {
+        .valunteer-item__designation {
+            opacity: 1;
+            transition-delay: 0.3s;
+        }
+    }
+}
+
+
+/* Become Volunteer Three */
+.volunteer-left-video {
+    padding-left: 10%;
+    padding-right: 10%;
+    .video-play--three {
+        position: absolute;
+        left: 0;
+        top: 25%;
+    }
+    .small-image {
+        position: absolute;
+        bottom: 14%;
+        right: 0;
+        max-width: 60%;
+    }
+}
+
+.become-volunteer-three {
+    .form-style-two .form-control {
+        background: #FEF2F1;
+    }
+}
+
+/* Vecome Volunteer Four */
+.volunteer-content.form-style-two:not(.text-white) {
+    .form-control {
+        background: #FEF2F1;
+    }
+}
+
+
+/* Become Volunteer page */
+.become-volunteer-video-content {
+    .tags {
+        a {
+            &:not(:last-child) {
+                margin-right: 5px;
+                &:after {
+                    content: ',';
+                }
+            }
+            &:hover {
+                color: var(--primary-color);
+            }
+        }
+    }
+    .list-style-two {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        li {
+            width: 100%;
+            @include res-ab(sm) {
+                width: 49%;
+            }
+        }
+    }
+    .earning-doner {
+        display: flex;
+        flex-wrap: wrap;
+        margin: 0 -40px -30px 0;
+        li {
+            line-height: 1.5;
+            margin-right: 40px;
+            margin-bottom: 30px;
+            b {
+                display: block;
+                font-weight: 800;
+                color: var(--heading-color);
+                font-family: var(--heading-font);
+            }
+        }
+    }
+}
