@@ -37,15 +37,17 @@ const donationMembershipSchema = z.object({
   professionalDetails: z.string()
     .min(20, 'Please provide at least 20 characters describing your professional contribution')
     .max(1000, 'Description must be less than 1000 characters'),
-  role: z.enum(['member', 'donor'], {
-    required_error: 'Please select your role with Sarvaarth'
-  }),
+  role: z.enum(['member', 'donor']).refine(
+    val => !!val,
+    { message: 'Please select your role with Sarvaarth' }
+  ),
   donationAmount: z.number()
     .min(1, 'Donation amount must be at least ₹1')
     .optional(),
-  paymentMode: z.enum(['cash', 'upi', 'netbanking'], {
-    required_error: 'Please select payment mode'
-  }),
+  paymentMode: z.enum(['cash', 'upi', 'netbanking']).refine(
+    val => !!val,
+    { message: 'Please select payment mode' }
+  ),
   receipt: z.any().optional()
 })
 
