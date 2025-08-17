@@ -105,7 +105,7 @@ export default function Home() {
               <div className="relative">
                 <div className="h-48 overflow-hidden">
                   <Image
-                    src="/assets/img/causes/cause1.jpg"
+                    src="/assets/img/latest/portrait-woman-working-healthcare-system-as-pediatrician.jpg"
                     alt="Healthcare"
                     width={400}
                     height={192}
@@ -165,7 +165,7 @@ export default function Home() {
               <div className="relative">
                 <div className="h-48 overflow-hidden">
                   <Image
-                    src="/assets/img/causes/cause3.jpg"
+                    src="/assets/img/latest/woman-teaching-classroom.jpg"
                     alt="Education"
                     width={400}
                     height={192}

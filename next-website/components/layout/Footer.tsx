@@ -24,7 +24,7 @@ const Footer = () => {
               </div>
             </div>
             <p className="text-gray-400 leading-relaxed">
-              Filling voids in Indian Education, Climate, and Healthcare systems for the needy.
+              READY TO HELP ALWAYS IN ALL WAYS
               Founded on October 4, 2023, with a mission to empower lives through healthcare and education.
             </p>
             <div className="flex space-x-4">
@@ -109,18 +109,18 @@ const Footer = () => {
               <div className="flex items-start space-x-3">
                 <MapPin className="w-5 h-5 text-ngo-blue mt-0.5" />
                 <div className="text-gray-400">
-                  <div>Organization Address</div>
-                  <div>City, State - 000000</div>
+                  <div>SARVAARTH & SEVAARTH FOUNDATION</div>
+                  <div>RZF-756/48 Rajnagar-2, New Delhi-110077</div>
                   <div>India</div>
                 </div>
               </div>
               <div className="flex items-center space-x-3">
                 <Phone className="w-5 h-5 text-ngo-blue" />
-                <span className="text-gray-400">+91 XXXXX XXXXX</span>
+                <span className="text-gray-400">+91 9313702100</span>
               </div>
               <div className="flex items-center space-x-3">
                 <Mail className="w-5 h-5 text-ngo-blue" />
-                <span className="text-gray-400">info@sarvaarth-sevaarth.org</span>
+                <span className="text-gray-400">info@sarvaarth.in</span>
               </div>
             </div>
           </div>
