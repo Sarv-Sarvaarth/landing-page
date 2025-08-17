@@ -73,6 +73,7 @@ export default function DonationMembershipForm({ type, onSuccess }: DonationMemb
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [filePreview, setFilePreview] = useState<string | null>(null)
   const [copiedText, setCopiedText] = useState<string | null>(null)
+  const [isQrModalOpen, setIsQrModalOpen] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const {
@@ -553,8 +554,19 @@ export default function DonationMembershipForm({ type, onSuccess }: DonationMemb
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
                       <div className="text-center">
                         <div className="bg-white p-4 rounded-lg border-2 border-dashed border-green-300 mb-3">
-                          <QrCode className="w-32 h-32 mx-auto text-green-600" />
-                          <p className="text-sm text-gray-600 mt-2">UPI QR Code Placeholder</p>
+                          <div
+                            className="cursor-pointer transition-transform hover:scale-105"
+                            onClick={() => setIsQrModalOpen(true)}
+                          >
+                            <Image
+                              src="/assets/img/latest/QR.jpg"
+                              alt="UPI QR Code"
+                              width={128}
+                              height={128}
+                              className="mx-auto rounded-lg"
+                            />
+                          </div>
+                          <p className="text-sm text-gray-600 mt-2">Scan to Pay <span className="text-blue-600">(Click to enlarge)</span></p>
                         </div>
                         <p className="text-sm text-gray-600">Scan with any UPI app</p>
                       </div>
@@ -563,7 +575,7 @@ export default function DonationMembershipForm({ type, onSuccess }: DonationMemb
                         <div>
                           <Label className="text-sm font-medium text-gray-700">UPI ID:</Label>
                           <div className="flex items-center gap-2 mt-1">
-                            <code className="bg-white px-3 py-2 rounded border text-sm flex-1">sarvaarth@upi</code>
+                            <code className="bg-white px-3 py-2 rounded border text-sm flex-1">sarvaarth.sevaarth1860@sbi</code>
                             <Button
                               type="button"
                               size="sm"
@@ -800,6 +812,53 @@ export default function DonationMembershipForm({ type, onSuccess }: DonationMemb
             All uploaded receipts are encrypted and stored securely.
           </p>
         </div>
+
+        {/* QR Code Modal */}
+        {isQrModalOpen && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 backdrop-blur-sm"
+            onClick={() => setIsQrModalOpen(false)}
+          >
+            <div
+              className="relative bg-white rounded-xl p-6 max-w-md mx-4 transform transition-all duration-300 scale-100"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={() => setIsQrModalOpen(false)}
+                className="absolute top-2 right-2 p-2 text-gray-500 hover:text-gray-700 transition-colors"
+                aria-label="Close modal"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="text-center">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  UPI Payment QR Code
+                </h3>
+
+                <div className="bg-white p-4 rounded-lg border shadow-lg mb-4">
+                  <Image
+                    src="/assets/img/latest/QR.jpg"
+                    alt="UPI QR Code"
+                    width={300}
+                    height={300}
+                    className="mx-auto rounded-lg"
+                    priority
+                  />
+                </div>
+
+                <p className="text-sm text-gray-600 mb-2">
+                  Scan this QR code with any UPI app to make payment
+                </p>
+
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <p className="text-xs text-gray-500 mb-1">UPI ID:</p>
+                  <code className="text-sm font-mono text-gray-800">sarvaarth.sevaarth1860@sbi</code>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   )
