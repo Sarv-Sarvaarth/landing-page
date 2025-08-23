@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
 import { GetServerSideProps } from 'next'
+import { getAllVolunteerRoles } from '@/src/db/queries/volunteer'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -22,21 +23,7 @@ import {
   ToggleLeft,
   ToggleRight
 } from 'lucide-react'
-
-interface VolunteerRole {
-  id: number
-  title: string
-  description: string
-  requirements: string[] | string
-  skillsNeeded: string[] | string
-  timeCommitment: string
-  location: string
-  isActive: boolean
-  maxVolunteers: number | null
-  currentVolunteers: number
-  createdAt: string
-  updatedAt: string | null
-}
+import { VolunteerRole } from '@/src/types/volunteer'
 
 interface AdminUser {
   id: number
@@ -115,8 +102,8 @@ export default function AdminDashboard({ roles: initialRoles, user }: AdminPageP
       description: role.description,
       requirements: getRequirements(role).join('\n'),
       skillsNeeded: getSkillsNeeded(role).join('\n'),
-      timeCommitment: role.timeCommitment,
-      location: role.location,
+      timeCommitment: role.timeCommitment || '',
+      location: role.location || '',
       isActive: role.isActive,
       maxVolunteers: role.maxVolunteers?.toString() || ''
     })
@@ -136,8 +123,8 @@ export default function AdminDashboard({ roles: initialRoles, user }: AdminPageP
         description: formData.description,
         requirements: formData.requirements.split('\n').filter(r => r.trim()),
         skillsNeeded: formData.skillsNeeded.split('\n').filter(s => s.trim()),
-        timeCommitment: formData.timeCommitment,
-        location: formData.location,
+        timeCommitment: formData.timeCommitment || null,
+        location: formData.location || null,
         isActive: formData.isActive,
         maxVolunteers: formData.maxVolunteers ? parseInt(formData.maxVolunteers) : null
       }
@@ -558,19 +545,17 @@ export const getServerSideProps: GetServerSideProps<AdminPageProps> = async ({ r
       }
     }
 
-    // Fetch roles
-    const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http'
-    const host = process.env.VERCEL_URL || 'localhost:3000'
-    const response = await fetch(`${protocol}://${host}/api/volunteer/roles`)
+    // Fetch roles directly from database
+    const rolesData = await getAllVolunteerRoles(false) // Get all roles, both active and inactive
 
-    let roles: VolunteerRole[] = []
-
-    if (response.ok) {
-      const result = await response.json()
-      if (result.success) {
-        roles = result.data || []
-      }
-    }
+    // Process the roles the same way the API does
+    const roles: VolunteerRole[] = rolesData.map(role => ({
+      ...role,
+      requirements: role.requirements ? JSON.parse(role.requirements) : [],
+      skillsNeeded: role.skillsNeeded ? JSON.parse(role.skillsNeeded) : [],
+      createdAt: role.createdAt,
+      updatedAt: role.updatedAt ? role.updatedAt.toISOString() : null,
+    }))
 
     return {
       props: {

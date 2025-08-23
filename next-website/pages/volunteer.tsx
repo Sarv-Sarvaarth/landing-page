@@ -6,19 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import VolunteerForm from '@/components/forms/VolunteerForm'
 import { Heart, Users, HandHeart, Globe, Award, ArrowRight, CheckCircle, Star } from 'lucide-react'
-
-interface VolunteerRole {
-  id: number
-  title: string
-  description: string
-  requirements: string[]
-  skillsNeeded: string[]
-  timeCommitment: string
-  location: string
-  isActive: boolean
-  maxVolunteers: number | null
-  currentVolunteers: number
-}
+import { getAvailableVolunteerRoles } from '@/src/db/queries/volunteer'
+import { VolunteerRole } from '@/src/types/volunteer'
 
 interface VolunteerPageProps {
   volunteerRoles: VolunteerRole[]
@@ -334,19 +323,17 @@ export default function Volunteer({ volunteerRoles }: VolunteerPageProps) {
 
 export const getServerSideProps: GetServerSideProps<VolunteerPageProps> = async () => {
   try {
-    // Fetch volunteer roles from the API
-    const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http'
-    const host = process.env.VERCEL_URL || 'localhost:3000'
-    const response = await fetch(`${protocol}://${host}/api/volunteer-roles`)
+    // Fetch volunteer roles directly from database
+    const roles = await getAvailableVolunteerRoles()
 
-    let volunteerRoles: VolunteerRole[] = []
-
-    if (response.ok) {
-      const result = await response.json()
-      if (result.success) {
-        volunteerRoles = result.data || []
-      }
-    }
+    // Process the roles the same way the API does
+    const volunteerRoles: VolunteerRole[] = roles.map(role => ({
+      ...role,
+      requirements: role.requirements ? JSON.parse(role.requirements) : [],
+      skillsNeeded: role.skillsNeeded ? JSON.parse(role.skillsNeeded) : [],
+      createdAt: role.createdAt,
+      updatedAt: role.updatedAt ? role.updatedAt.toISOString() : null,
+    }))
 
     return {
       props: {

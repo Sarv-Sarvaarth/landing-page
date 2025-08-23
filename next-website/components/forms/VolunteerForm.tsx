@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
+import { VolunteerRole } from '@/src/types/volunteer'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -53,19 +54,6 @@ const salutations = [
   { value: 'Dr.', label: 'Dr.' },
   { value: 'Prof.', label: 'Prof.' }
 ]
-
-interface VolunteerRole {
-  id: number
-  title: string
-  description: string
-  requirements: string[]
-  skillsNeeded: string[]
-  timeCommitment: string
-  location: string
-  isActive: boolean
-  maxVolunteers: number | null
-  currentVolunteers: number
-}
 
 interface VolunteerFormProps {
   onSuccess?: () => void
