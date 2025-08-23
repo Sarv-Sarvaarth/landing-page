@@ -1,0 +1,36 @@
+CREATE TABLE `membership_donation` (
+	`id` integer PRIMARY KEY NOT NULL,
+	`email` text NOT NULL,
+	`salutation` text NOT NULL,
+	`full_name` text NOT NULL,
+	`address` text NOT NULL,
+	`pan_number` text NOT NULL,
+	`aadhaar_number` text NOT NULL,
+	`occupation` text NOT NULL,
+	`professional_details` text NOT NULL,
+	`type` text NOT NULL,
+	`role` text NOT NULL,
+	`amount` real NOT NULL,
+	`payment_mode` text NOT NULL,
+	`receipt_filename` text,
+	`receipt_path` text,
+	`receipt_mime_type` text,
+	`receipt_size` integer,
+	`status` text DEFAULT 'pending_verification' NOT NULL,
+	`verified_date` text,
+	`verified_by` integer,
+	`membership_start_date` text,
+	`membership_expiry_date` text,
+	`membership_id` text,
+	`tax_receipt_number` text,
+	`tax_receipt_issued` integer DEFAULT false,
+	`tax_receipt_date` text,
+	`notes` text,
+	`payment_reference` text,
+	`created_at` text DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
+	`updated_at` integer,
+	FOREIGN KEY (`verified_by`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `membership_donation_membership_id_unique` ON `membership_donation` (`membership_id`);--> statement-breakpoint
+CREATE UNIQUE INDEX `membership_donation_tax_receipt_number_unique` ON `membership_donation` (`tax_receipt_number`);

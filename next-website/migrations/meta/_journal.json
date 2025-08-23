@@ -8,6 +8,27 @@
       "when": 1755944846419,
       "tag": "0000_safe_bloodscream",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1755966132028,
+      "tag": "0001_freezing_marrow",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1755970361212,
+      "tag": "0002_shiny_stardust",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1755971426508,
+      "tag": "0003_overjoyed_alex_wilder",
+      "breakpoints": true
     }
   ]
 }

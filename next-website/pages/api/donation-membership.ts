@@ -2,6 +2,8 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import formidable from 'formidable'
 import fs from 'fs'
 import path from 'path'
+import { insertMembershipDonation, generateMembershipId, generateTaxReceiptNumber } from '@/src/db/queries/membership-donation'
+import { InsertMembershipDonation } from '@/src/db/schema'
 
 // Disable body parser for file uploads
 export const config = {
@@ -195,59 +197,69 @@ export default async function handler(
       })
     }
 
-    // Create record object (for now just structure the data)
-    const record = {
-      id: `${data.role.toUpperCase()}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      type: data.type,
+    // Prepare database record
+    const dbRecord: InsertMembershipDonation = {
       email: data.email,
       salutation: data.salutation,
       fullName: data.fullName,
       address: data.address,
       panNumber: data.panNumber,
-      aadhaarNumber: data.aadhaarNumber.replace(/(\d{4})(\d{4})(\d{4})/, '****-****-$3'), // Mask for logging
+      aadhaarNumber: data.aadhaarNumber, // Store actual value (encrypt in production)
       occupation: data.occupation,
       professionalDetails: data.professionalDetails,
+      type: data.type,
       role: data.role,
-      amount: data.role === 'member' ? 1000 : data.donationAmount,
+      amount: data.role === 'member' ? 1000 : data.donationAmount!,
       paymentMode: data.paymentMode,
-      receipt: data.receipt ? {
-        filename: data.receipt.filename,
-        originalFilename: data.receipt.originalFilename,
-        size: data.receipt.size,
-        mimetype: data.receipt.mimetype
-      } : null,
-      registrationDate: new Date().toISOString(),
-      status: 'pending_verification'
+
+      // Receipt file information
+      receiptFilename: data.receipt?.originalFilename || null,
+      receiptPath: data.receipt ? `/uploads/${data.receipt.filename}` : null,
+      receiptMimeType: data.receipt?.mimetype || null,
+      receiptSize: data.receipt?.size || null,
+
+      // Status
+      status: 'pending_verification',
+
+      // Additional fields will be set to null/default by database
     }
 
-    // Log the structured record (with masked sensitive data)
-    console.log(`${data.role === 'member' ? 'Membership' : 'Donation'} processed successfully:`, {
-      id: record.id,
-      type: record.type,
-      email: record.email,
-      fullName: record.fullName,
-      role: record.role,
-      amount: record.amount,
-      paymentMode: record.paymentMode,
-      hasReceipt: !!record.receipt,
-      status: record.status,
-      registrationDate: record.registrationDate
+    // Save to database
+    const savedRecord = await insertMembershipDonation(dbRecord)
+
+    // Log the successful database save (with masked sensitive data for security)
+    console.log(`${data.role === 'member' ? 'Membership' : 'Donation'} saved to database successfully:`, {
+      id: savedRecord.id,
+      type: savedRecord.type,
+      email: savedRecord.email,
+      fullName: savedRecord.fullName,
+      role: savedRecord.role,
+      amount: savedRecord.amount,
+      paymentMode: savedRecord.paymentMode,
+      hasReceipt: !!savedRecord.receiptFilename,
+      status: savedRecord.status,
+      createdAt: savedRecord.createdAt
     })
 
-    // TODO: In the future, save to database
-    // Example: await saveDonationMembershipToDatabase(record)
-
-    // TODO: Process payment verification
-    // Example: await verifyPaymentReceipt(record)
+    // Log file information for admin reference
+    if (data.receipt) {
+      console.log('Receipt file uploaded:', {
+        originalFilename: data.receipt.originalFilename,
+        storedFilename: data.receipt.filename,
+        size: data.receipt.size,
+        mimetype: data.receipt.mimetype,
+        filepath: data.receipt.filepath
+      })
+    }
 
     // TODO: Send confirmation email
-    // Example: await sendConfirmationEmail(data.email, record)
+    // Example: await sendConfirmationEmail(data.email, savedRecord)
 
     // TODO: Notify admin team
-    // Example: await notifyAdminTeam(record)
+    // Example: await notifyAdminTeam(savedRecord)
 
-    // TODO: Generate tax receipt (for donations)
-    // Example: if (data.role === 'donor') await generateTaxReceipt(record)
+    // TODO: Auto-process simple payments or flag for manual review
+    // Example: await processPaymentVerification(savedRecord)
 
     // Return success response
     const responseMessage = data.role === 'member'
@@ -258,15 +270,16 @@ export default async function handler(
       success: true,
       message: responseMessage,
       data: {
-        registrationId: record.id,
-        email: record.email,
-        fullName: record.fullName,
-        type: record.type,
-        role: record.role,
-        amount: record.amount,
-        paymentMode: record.paymentMode,
-        status: record.status,
-        submittedAt: record.registrationDate
+        id: savedRecord.id,
+        email: savedRecord.email,
+        fullName: savedRecord.fullName,
+        type: savedRecord.type,
+        role: savedRecord.role,
+        amount: savedRecord.amount,
+        paymentMode: savedRecord.paymentMode,
+        status: savedRecord.status,
+        submittedAt: savedRecord.createdAt,
+        hasReceipt: !!savedRecord.receiptFilename
       }
     })
 

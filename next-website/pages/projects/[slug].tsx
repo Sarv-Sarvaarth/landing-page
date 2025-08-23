@@ -1,8 +1,8 @@
-import { GetStaticPaths, GetStaticProps } from 'next'
 import { useState } from 'react'
 import Head from 'next/head'
 import Image from 'next/image'
 import Link from 'next/link'
+import { GetServerSideProps } from 'next'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -11,76 +11,122 @@ import {
   Calendar,
   MapPin,
   Users,
+  DollarSign,
   Target,
+  TrendingUp,
+  Award,
+  CheckCircle2,
+  Clock,
+  AlertCircle,
+  Archive,
   Heart,
   BookOpen,
   Stethoscope,
-  Home,
   Building2,
-  Clock,
-  CheckCircle2,
-  AlertCircle,
-  Archive,
-  DollarSign,
-  TrendingUp,
-  Award,
+  Home,
   Download,
-  Share2,
-  ExternalLink,
-  Play,
-  FileText,
-  ChevronLeft,
-  ChevronRight
+  ExternalLink
 } from 'lucide-react'
 
-// This would typically come from an API or database
 interface Project {
-  id: string
+  id: number
   title: string
   slug: string
-  category: 'healthcare' | 'education' | 'social-welfare' | 'community-development' | 'infrastructure'
-  status: 'completed' | 'ongoing' | 'paused' | 'archived'
-  startDate: string
-  endDate?: string
+  category: string
+  status: string
+  startDate: string | null
+  endDate: string | null
   location: string
-  description: string
   shortDescription: string
-  totalBudget: string
-  fundsRaised: string
+  fullDescription: string
+  objectives: string
+  totalBudget: string | null
+  fundsRaised: string | null
   beneficiaries: number
-  duration: string
-  objectives: string[]
-  keyAchievements: string[]
-  challenges: string[]
-  lessons: string[]
-  partners: string[]
-  team: string[]
-  images: string[]
-  documents: { name: string; type: string; url: string }[]
-  tags: string[]
-  impactMetrics: {
-    metric: string
-    value: string
-    description: string
-  }[]
+  duration: string | null
+  keyAchievements: string | null
+  challenges: string | null
+  lessons: string | null
+  partners: string | null
+  team: string | null
+  images: string | null
+  documents: string | null
+  impactMetrics: string | null
+  tags: string | null
+  publishedAt: string | null
+  createdAt: string
 }
 
-interface ProjectDetailProps {
-  project: Project
+interface ProjectDetailPageProps {
+  project: Project | null
 }
 
-export default function ProjectDetail({ project }: ProjectDetailProps) {
-  const [currentImageIndex, setCurrentImageIndex] = useState(0)
-  const [activeTab, setActiveTab] = useState<'overview' | 'impact' | 'team' | 'resources'>('overview')
+export default function ProjectDetailPage({ project }: ProjectDetailPageProps) {
+  if (!project) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Project Not Found</h1>
+          <p className="text-gray-600 mb-8">The project you're looking for doesn't exist or has been removed.</p>
+          <Link href="/projects">
+            <Button>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Projects
+            </Button>
+          </Link>
+        </div>
+      </div>
+    )
+  }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed': return 'bg-green-100 text-green-800 border-green-200'
-      case 'ongoing': return 'bg-blue-100 text-blue-800 border-blue-200'
-      case 'paused': return 'bg-yellow-100 text-yellow-800 border-yellow-200'
-      case 'archived': return 'bg-gray-100 text-gray-800 border-gray-200'
-      default: return 'bg-gray-100 text-gray-800 border-gray-200'
+  const parseJsonField = (field: string | null): string[] => {
+    if (!field) return []
+    try {
+      const parsed = JSON.parse(field)
+      return Array.isArray(parsed) ? parsed : []
+    } catch {
+      return []
     }
+  }
+
+  const parseImpactMetrics = (field: string | null): any[] => {
+    if (!field) return []
+    try {
+      const parsed = JSON.parse(field)
+      return Array.isArray(parsed) ? parsed : []
+    } catch {
+      return []
+    }
+  }
+
+  const parseDocuments = (field: string | null): any[] => {
+    if (!field) return []
+    try {
+      const parsed = JSON.parse(field)
+      return Array.isArray(parsed) ? parsed : []
+    } catch {
+      return []
+    }
+  }
+
+  const getStatusBadge = (status: string) => {
+    const statusConfig = {
+      'planned': { color: 'bg-gray-100 text-gray-800', label: 'Planned', icon: AlertCircle },
+      'ongoing': { color: 'bg-blue-100 text-blue-800', label: 'Ongoing', icon: Clock },
+      'completed': { color: 'bg-green-100 text-green-800', label: 'Completed', icon: CheckCircle2 },
+      'paused': { color: 'bg-yellow-100 text-yellow-800', label: 'Paused', icon: Clock },
+      'archived': { color: 'bg-gray-100 text-gray-800', label: 'Archived', icon: Archive }
+    }
+
+    const config = statusConfig[status as keyof typeof statusConfig] || { color: 'bg-gray-100 text-gray-800', label: status, icon: AlertCircle }
+    const IconComponent = config.icon
+
+    return (
+      <Badge className={`${config.color} flex items-center gap-1`}>
+        <IconComponent className="w-3 h-3" />
+        {config.label}
+      </Badge>
+    )
   }
 
   const getCategoryIcon = (category: string) => {
@@ -94,22 +140,26 @@ export default function ProjectDetail({ project }: ProjectDetailProps) {
     }
   }
 
-  const nextImage = () => {
-    if (project.images.length > 1) {
-      setCurrentImageIndex((prev) => (prev + 1) % project.images.length)
-    }
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'Not set'
+    return new Date(dateString).toLocaleDateString('en-IN', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })
   }
 
-  const prevImage = () => {
-    if (project.images.length > 1) {
-      setCurrentImageIndex((prev) => (prev - 1 + project.images.length) % project.images.length)
-    }
-  }
+  const objectives = parseJsonField(project.objectives)
+  const keyAchievements = parseJsonField(project.keyAchievements)
+  const challenges = parseJsonField(project.challenges)
+  const lessons = parseJsonField(project.lessons)
+  const partners = parseJsonField(project.partners)
+  const team = parseJsonField(project.team)
+  const tags = parseJsonField(project.tags)
+  const impactMetrics = parseImpactMetrics(project.impactMetrics)
+  const documents = parseDocuments(project.documents)
 
   const CategoryIcon = getCategoryIcon(project.category)
-  const completionPercentage = project.status === 'completed' ? 100 :
-                             project.status === 'ongoing' ? 75 :
-                             project.status === 'paused' ? 50 : 25
 
   return (
     <>
@@ -117,275 +167,180 @@ export default function ProjectDetail({ project }: ProjectDetailProps) {
         <title>{project.title} - SARVAARTH & SEVAARTH FOUNDATION</title>
         <meta name="description" content={project.shortDescription} />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-        {/* Open Graph tags for social sharing */}
-        <meta property="og:title" content={project.title} />
-        <meta property="og:description" content={project.shortDescription} />
-        <meta property="og:type" content="article" />
-        <meta property="og:url" content={`https://sarvaarth.org/projects/${project.slug}`} />
-        {project.images[0] && <meta property="og:image" content={project.images[0]} />}
-
-        {/* Twitter Card tags */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={project.title} />
-        <meta name="twitter:description" content={project.shortDescription} />
-        {project.images[0] && <meta name="twitter:image" content={project.images[0]} />}
       </Head>
 
-      {/* Navigation */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-40">
-        <div className="ngo-container">
-          <div className="flex items-center justify-between py-4">
-            <Link href="/projects" className="flex items-center gap-2 text-ngo-blue hover:text-ngo-blue-light transition-colors">
+      {/* Hero Section */}
+      <section
+        className="relative bg-gradient-to-br from-ngo-blue to-ngo-blue-light text-white overflow-hidden py-20"
+        style={{
+          backgroundImage: 'url(/assets/img/background/page-banner.jpg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundBlendMode: 'overlay'
+        }}
+      >
+        <div className="absolute inset-0 bg-ngo-blue bg-opacity-85"></div>
+
+        <div className="relative ngo-container">
+          <div className="max-w-4xl mx-auto">
+            <Link href="/projects" className="inline-flex items-center gap-2 text-blue-100 hover:text-white mb-6 transition-colors">
               <ArrowLeft className="w-4 h-4" />
               Back to Projects
             </Link>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" className="border-ngo-blue text-ngo-blue hover:bg-ngo-blue hover:text-white">
-                <Share2 className="w-4 h-4 mr-2" />
-                Share Project
-              </Button>
-              <Button size="sm" className="bg-ngo-orange hover:bg-ngo-orange-light">
-                <Download className="w-4 h-4 mr-2" />
-                Download Report
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      {/* Hero Section */}
-      <section className="ngo-section bg-gradient-to-br from-blue-50 to-orange-50">
-        <div className="ngo-container">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            {/* Project Info */}
-            <div>
-              <div className="flex items-center gap-3 mb-4">
-                <Badge className={`${getStatusColor(project.status)} text-sm`}>
-                  {project.status.replace('-', ' ').toUpperCase()}
-                </Badge>
-                <Badge variant="outline" className="text-sm">
-                  {project.category.replace('-', ' ').toUpperCase()}
-                </Badge>
-              </div>
-
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-ngo-blue mb-6">
-                {project.title}
-              </h1>
-
-              <p className="text-lg text-gray-700 mb-6 leading-relaxed">
-                {project.description}
-              </p>
-
-              {/* Quick Stats */}
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="flex items-center gap-2 text-gray-600">
-                  <Calendar className="w-5 h-5" />
-                  <div>
-                    <div className="text-sm">Duration</div>
-                    <div className="font-medium">{project.duration}</div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 text-gray-600">
-                  <MapPin className="w-5 h-5" />
-                  <div>
-                    <div className="text-sm">Location</div>
-                    <div className="font-medium">{project.location}</div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 text-gray-600">
-                  <Users className="w-5 h-5" />
-                  <div>
-                    <div className="text-sm">Beneficiaries</div>
-                    <div className="font-medium">{project.beneficiaries.toLocaleString()}</div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 text-gray-600">
-                  <DollarSign className="w-5 h-5" />
-                  <div>
-                    <div className="text-sm">Budget</div>
-                    <div className="font-medium">{project.totalBudget}</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Progress */}
-              <div className="mb-6">
-                <div className="flex justify-between text-sm mb-2">
-                  <span className="text-gray-600">Project Progress</span>
-                  <span className="text-ngo-blue font-medium">{completionPercentage}%</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-3">
-                  <div
-                    className="bg-ngo-blue h-3 rounded-full transition-all duration-300"
-                    style={{ width: `${completionPercentage}%` }}
-                  ></div>
-                </div>
-              </div>
-
-              {/* Tags */}
-              <div className="flex flex-wrap gap-2">
-                {project.tags.map((tag, index) => (
-                  <span key={index} className="px-3 py-1 bg-ngo-blue bg-opacity-10 text-ngo-blue rounded-full text-sm">
-                    #{tag}
-                  </span>
-                ))}
-              </div>
+            <div className="flex items-center gap-3 mb-4">
+              <CategoryIcon className="w-8 h-8 text-ngo-orange" />
+              <Badge variant="outline" className="bg-white bg-opacity-20 text-white border-white border-opacity-30">
+                {project.category.replace('-', ' ').toUpperCase()}
+              </Badge>
+              {getStatusBadge(project.status)}
             </div>
 
-            {/* Project Image Gallery */}
-            <div>
-              <div className="relative aspect-video bg-gray-100 rounded-2xl overflow-hidden shadow-lg">
-                {project.images.length > 0 ? (
-                  <>
-                    <div className="aspect-video bg-gradient-to-br from-blue-100 to-orange-100 rounded-2xl flex items-center justify-center border-2 border-gray-200">
-                      <div className="text-center">
-                        <CategoryIcon className="w-20 h-20 text-ngo-blue opacity-50 mx-auto mb-3" />
-                        <p className="text-gray-500">Project Image Placeholder</p>
-                        <p className="text-sm text-gray-400">({currentImageIndex + 1} of {project.images.length})</p>
-                      </div>
-                    </div>
-                    {project.images.length > 1 && (
-                      <>
-                        <button
-                          onClick={prevImage}
-                          className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white rounded-full p-3 hover:bg-opacity-70 transition-all"
-                        >
-                          <ChevronLeft className="w-5 h-5" />
-                        </button>
-                        <button
-                          onClick={nextImage}
-                          className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white rounded-full p-3 hover:bg-opacity-70 transition-all"
-                        >
-                          <ChevronRight className="w-5 h-5" />
-                        </button>
-                        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
-                          {project.images.map((_, index) => (
-                            <button
-                              key={index}
-                              onClick={() => setCurrentImageIndex(index)}
-                              className={`w-3 h-3 rounded-full transition-all ${
-                                index === currentImageIndex ? 'bg-white' : 'bg-white bg-opacity-50'
-                              }`}
-                            />
-                          ))}
-                        </div>
-                      </>
-                    )}
-                  </>
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <div className="text-center">
-                      <CategoryIcon className="w-20 h-20 text-gray-400 mx-auto mb-3" />
-                      <p className="text-gray-500">No images available</p>
-                    </div>
-                  </div>
-                )}
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6">{project.title}</h1>
+            <p className="text-xl sm:text-2xl text-blue-100 max-w-3xl mb-8">
+              {project.shortDescription}
+            </p>
+
+            {/* Quick Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl">
+              <div className="text-center">
+                <div className="text-2xl sm:text-3xl font-bold text-ngo-orange mb-1">{project.beneficiaries.toLocaleString()}</div>
+                <div className="text-sm text-blue-100">Beneficiaries</div>
+              </div>
+              {project.totalBudget && (
+                <div className="text-center">
+                  <div className="text-2xl sm:text-3xl font-bold text-ngo-orange mb-1">{project.totalBudget}</div>
+                  <div className="text-sm text-blue-100">Total Budget</div>
+                </div>
+              )}
+              {project.duration && (
+                <div className="text-center">
+                  <div className="text-2xl sm:text-3xl font-bold text-ngo-orange mb-1">{project.duration}</div>
+                  <div className="text-sm text-blue-100">Duration</div>
+                </div>
+              )}
+              <div className="text-center">
+                <div className="text-2xl sm:text-3xl font-bold text-ngo-orange mb-1">{formatDate(project.startDate).split(' ')[2]}</div>
+                <div className="text-sm text-blue-100">Year Started</div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Detailed Content */}
-      <section className="ngo-section bg-white">
+      {/* Main Content */}
+      <section className="ngo-section">
         <div className="ngo-container">
-          {/* Tabs */}
-          <div className="border-b border-gray-200 mb-8">
-            <div className="flex flex-wrap gap-0">
-              {[
-                { id: 'overview', label: 'Overview', icon: Target },
-                { id: 'impact', label: 'Impact & Metrics', icon: TrendingUp },
-                { id: 'team', label: 'Team & Partners', icon: Users },
-                { id: 'resources', label: 'Resources', icon: FileText }
-              ].map((tab) => {
-                const IconComponent = tab.icon
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id as any)}
-                    className={`flex items-center gap-2 px-6 py-4 font-medium border-b-2 transition-colors ${
-                      activeTab === tab.id
-                        ? 'border-ngo-blue text-ngo-blue bg-blue-50'
-                        : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                    }`}
-                  >
-                    <IconComponent className="w-4 h-4" />
-                    {tab.label}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Main Content */}
+            <div className="lg:col-span-2 space-y-8">
+              {/* Project Details */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Target className="w-5 h-5 text-ngo-blue" />
+                    Project Overview
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="prose max-w-none">
+                    <p className="text-gray-700 leading-relaxed">{project.fullDescription}</p>
+                  </div>
+                </CardContent>
+              </Card>
 
-          {/* Tab Content */}
-          <div className="max-w-none">
-            {activeTab === 'overview' && (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 space-y-8">
-                  {/* Objectives */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Target className="w-5 h-5 text-ngo-blue" />
-                        Project Objectives
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <ul className="space-y-3">
-                        {project.objectives.map((objective, index) => (
-                          <li key={index} className="flex items-start gap-3">
-                            <div className="w-6 h-6 bg-ngo-blue bg-opacity-10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                              <span className="text-xs font-bold text-ngo-blue">{index + 1}</span>
-                            </div>
-                            <span className="text-gray-700">{objective}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </CardContent>
-                  </Card>
+              {/* Objectives */}
+              {objectives.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Target className="w-5 h-5 text-ngo-blue" />
+                      Project Objectives
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-3">
+                      {objectives.map((objective, index) => (
+                        <li key={index} className="flex items-start gap-3">
+                          <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                          <span className="text-gray-700">{objective}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              )}
 
-                  {/* Key Achievements */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Award className="w-5 h-5 text-green-600" />
-                        Key Achievements
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <ul className="space-y-3">
-                        {project.keyAchievements.map((achievement, index) => (
-                          <li key={index} className="flex items-start gap-3">
-                            <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                            <span className="text-gray-700">{achievement}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </CardContent>
-                  </Card>
+              {/* Key Achievements */}
+              {keyAchievements.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Award className="w-5 h-5 text-ngo-orange" />
+                      Key Achievements
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-3">
+                      {keyAchievements.map((achievement, index) => (
+                        <li key={index} className="flex items-start gap-3">
+                          <TrendingUp className="w-5 h-5 text-ngo-orange mt-0.5 flex-shrink-0" />
+                          <span className="text-gray-700">{achievement}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              )}
 
-                  {/* Challenges & Lessons */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Impact Metrics */}
+              {impactMetrics.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <TrendingUp className="w-5 h-5 text-green-600" />
+                      Impact Metrics
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {impactMetrics.map((metric, index) => (
+                        <div key={index} className="bg-gray-50 p-4 rounded-lg border">
+                          <div className="font-semibold text-gray-900 mb-1">{metric.metric}</div>
+                          <div className="text-2xl font-bold text-ngo-blue mb-2">{metric.value}</div>
+                          <div className="text-sm text-gray-600">{metric.description}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Challenges & Lessons */}
+              {(challenges.length > 0 || lessons.length > 0) && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {challenges.length > 0 && (
                     <Card>
                       <CardHeader>
                         <CardTitle className="flex items-center gap-2">
-                          <AlertCircle className="w-5 h-5 text-orange-600" />
-                          Challenges
+                          <AlertCircle className="w-5 h-5 text-red-600" />
+                          Challenges Faced
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
                         <ul className="space-y-2">
-                          {project.challenges.map((challenge, index) => (
-                            <li key={index} className="flex items-start gap-2">
-                              <span className="text-orange-600 mt-1">•</span>
-                              <span className="text-sm text-gray-700">{challenge}</span>
+                          {challenges.map((challenge, index) => (
+                            <li key={index} className="flex items-start gap-3">
+                              <div className="w-2 h-2 bg-red-600 rounded-full mt-2 flex-shrink-0"></div>
+                              <span className="text-gray-700 text-sm">{challenge}</span>
                             </li>
                           ))}
                         </ul>
                       </CardContent>
                     </Card>
+                  )}
 
+                  {lessons.length > 0 && (
                     <Card>
                       <CardHeader>
                         <CardTitle className="flex items-center gap-2">
@@ -395,191 +350,80 @@ export default function ProjectDetail({ project }: ProjectDetailProps) {
                       </CardHeader>
                       <CardContent>
                         <ul className="space-y-2">
-                          {project.lessons.map((lesson, index) => (
-                            <li key={index} className="flex items-start gap-2">
-                              <span className="text-blue-600 mt-1">•</span>
-                              <span className="text-sm text-gray-700">{lesson}</span>
+                          {lessons.map((lesson, index) => (
+                            <li key={index} className="flex items-start gap-3">
+                              <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
+                              <span className="text-gray-700 text-sm">{lesson}</span>
                             </li>
                           ))}
                         </ul>
                       </CardContent>
                     </Card>
-                  </div>
+                  )}
                 </div>
+              )}
 
-                {/* Sidebar */}
-                <div className="space-y-6">
-                  {/* Project Timeline */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Clock className="w-5 h-5 text-ngo-blue" />
-                        Timeline
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        <div>
-                          <div className="text-sm text-gray-600">Start Date</div>
-                          <div className="font-medium">{new Date(project.startDate).toLocaleDateString('en-IN', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                          })}</div>
+              {/* Team & Partners */}
+              {(team.length > 0 || partners.length > 0) && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {team.length > 0 && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Users className="w-5 h-5 text-ngo-blue" />
+                          Project Team
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2">
+                          {team.map((member, index) => (
+                            <Badge key={index} variant="outline" className="bg-blue-50 text-blue-700 mr-2 mb-2">
+                              {member}
+                            </Badge>
+                          ))}
                         </div>
-                        {project.endDate && (
-                          <div>
-                            <div className="text-sm text-gray-600">End Date</div>
-                            <div className="font-medium">{new Date(project.endDate).toLocaleDateString('en-IN', {
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric'
-                            })}</div>
-                          </div>
-                        )}
-                        <div>
-                          <div className="text-sm text-gray-600">Duration</div>
-                          <div className="font-medium">{project.duration}</div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Budget Information */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <DollarSign className="w-5 h-5 text-ngo-blue" />
-                        Budget
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        <div>
-                          <div className="text-sm text-gray-600">Total Budget</div>
-                          <div className="text-lg font-bold text-ngo-blue">{project.totalBudget}</div>
-                        </div>
-                        <div>
-                          <div className="text-sm text-gray-600">Funds Raised</div>
-                          <div className="text-lg font-bold text-green-600">{project.fundsRaised}</div>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div
-                            className="bg-green-600 h-2 rounded-full"
-                            style={{ width: '100%' }}
-                          ></div>
-                        </div>
-                        <div className="text-xs text-gray-500">100% Funded</div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'impact' && (
-              <div className="space-y-8">
-                {/* Impact Metrics Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {project.impactMetrics.map((metric, index) => (
-                    <Card key={index} className="text-center">
-                      <CardContent className="p-6">
-                        <div className="text-3xl font-bold text-ngo-blue mb-2">{metric.value}</div>
-                        <div className="font-medium text-gray-900 mb-2">{metric.metric}</div>
-                        <div className="text-sm text-gray-600">{metric.description}</div>
                       </CardContent>
                     </Card>
-                  ))}
+                  )}
+
+                  {partners.length > 0 && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Building2 className="w-5 h-5 text-green-600" />
+                          Partners
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2">
+                          {partners.map((partner, index) => (
+                            <Badge key={index} variant="outline" className="bg-green-50 text-green-700 mr-2 mb-2">
+                              {partner}
+                            </Badge>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
                 </div>
+              )}
 
-                {/* Impact Story */}
+              {/* Documents */}
+              {documents.length > 0 && (
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <Heart className="w-5 h-5 text-red-600" />
-                      Impact Story
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-700 leading-relaxed">
-                      This project has created significant positive change in the communities we serve.
-                      Through dedicated effort and community partnership, we have successfully achieved
-                      our primary objectives and created lasting impact that will benefit generations to come.
-                    </p>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-
-            {activeTab === 'team' && (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Team Members */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Users className="w-5 h-5 text-ngo-blue" />
-                      Team Members
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {project.team.map((member, index) => (
-                        <div key={index} className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-ngo-blue bg-opacity-10 rounded-full flex items-center justify-center">
-                            <Users className="w-5 h-5 text-ngo-blue" />
-                          </div>
-                          <div>
-                            <div className="font-medium text-gray-900">{member}</div>
-                            <div className="text-sm text-gray-600">Team Member</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Partners */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Building2 className="w-5 h-5 text-ngo-orange" />
-                      Partners & Collaborators
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {project.partners.map((partner, index) => (
-                        <div key={index} className="flex items-center gap-3">
-                          <div className="w-2 h-2 bg-ngo-orange rounded-full"></div>
-                          <span className="text-gray-700">{partner}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-
-            {activeTab === 'resources' && (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Documents */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <FileText className="w-5 h-5 text-ngo-blue" />
+                      <Download className="w-5 h-5 text-gray-600" />
                       Project Documents
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-3">
-                      {project.documents.map((doc, index) => (
-                        <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                          <div className="flex items-center gap-3">
-                            <FileText className="w-5 h-5 text-gray-600" />
-                            <div>
-                              <div className="font-medium text-gray-900">{doc.name}</div>
-                              <div className="text-sm text-gray-600">{doc.type}</div>
-                            </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {documents.map((doc, index) => (
+                        <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
+                          <div>
+                            <div className="font-medium text-gray-900">{doc.name}</div>
+                            <div className="text-sm text-gray-600">{doc.type}</div>
                           </div>
                           <Button size="sm" variant="outline">
                             <Download className="w-4 h-4 mr-2" />
@@ -590,50 +434,113 @@ export default function ProjectDetail({ project }: ProjectDetailProps) {
                     </div>
                   </CardContent>
                 </Card>
+              )}
+            </div>
 
-                {/* Related Links */}
+            {/* Sidebar */}
+            <div className="space-y-6">
+              {/* Project Info Card */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Project Information</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <Calendar className="w-5 h-5 text-gray-600" />
+                    <div>
+                      <div className="font-medium">Start Date</div>
+                      <div className="text-sm text-gray-600">{formatDate(project.startDate)}</div>
+                    </div>
+                  </div>
+
+                  {project.endDate && (
+                    <div className="flex items-center gap-3">
+                      <Calendar className="w-5 h-5 text-gray-600" />
+                      <div>
+                        <div className="font-medium">End Date</div>
+                        <div className="text-sm text-gray-600">{formatDate(project.endDate)}</div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-3">
+                    <MapPin className="w-5 h-5 text-gray-600" />
+                    <div>
+                      <div className="font-medium">Location</div>
+                      <div className="text-sm text-gray-600">{project.location}</div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <Users className="w-5 h-5 text-gray-600" />
+                    <div>
+                      <div className="font-medium">Beneficiaries</div>
+                      <div className="text-sm text-gray-600">{project.beneficiaries.toLocaleString()} people</div>
+                    </div>
+                  </div>
+
+                  {project.totalBudget && (
+                    <div className="flex items-center gap-3">
+                      <DollarSign className="w-5 h-5 text-gray-600" />
+                      <div>
+                        <div className="font-medium">Total Budget</div>
+                        <div className="text-sm text-gray-600">{project.totalBudget}</div>
+                      </div>
+                    </div>
+                  )}
+
+                  {project.fundsRaised && (
+                    <div className="flex items-center gap-3">
+                      <TrendingUp className="w-5 h-5 text-gray-600" />
+                      <div>
+                        <div className="font-medium">Funds Raised</div>
+                        <div className="text-sm text-gray-600">{project.fundsRaised}</div>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Tags */}
+              {tags.length > 0 && (
                 <Card>
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <ExternalLink className="w-5 h-5 text-ngo-orange" />
-                      Related Links
-                    </CardTitle>
+                    <CardTitle>Tags</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-3">
-                      <a href="#" className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                        <span className="text-gray-700">Project Media Coverage</span>
-                        <ExternalLink className="w-4 h-4 text-gray-400" />
-                      </a>
-                      <a href="#" className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                        <span className="text-gray-700">Partner Organization Website</span>
-                        <ExternalLink className="w-4 h-4 text-gray-400" />
-                      </a>
-                      <a href="#" className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                        <span className="text-gray-700">Government Policy Reference</span>
-                        <ExternalLink className="w-4 h-4 text-gray-400" />
-                      </a>
+                    <div className="flex flex-wrap gap-2">
+                      {tags.map((tag, index) => (
+                        <Badge key={index} variant="outline" className="bg-purple-50 text-purple-700">
+                          #{tag}
+                        </Badge>
+                      ))}
                     </div>
                   </CardContent>
                 </Card>
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
+              )}
 
-      {/* Related Projects */}
-      <section className="ngo-section bg-gray-50">
-        <div className="ngo-container">
-          <h2 className="text-2xl font-bold text-center text-ngo-blue mb-8">Related Projects</h2>
-          <div className="text-center">
-            <p className="text-gray-600 mb-4">Explore similar projects in our portfolio</p>
-            <Link href="/projects">
-              <Button variant="outline" className="border-ngo-blue text-ngo-blue hover:bg-ngo-blue hover:text-white">
-                View All Projects
-                <ArrowLeft className="w-4 h-4 ml-2 rotate-180" />
-              </Button>
-            </Link>
+              {/* Call to Action */}
+              <Card className="bg-gradient-to-br from-ngo-blue to-ngo-blue-light text-white">
+                <CardContent className="p-6">
+                  <h3 className="font-bold text-lg mb-2">Interested in Supporting?</h3>
+                  <p className="text-blue-100 mb-4">Learn more about our work and how you can get involved.</p>
+                  <div className="space-y-2">
+                    <Link href="/donate" className="block">
+                      <Button className="w-full bg-white text-ngo-blue hover:bg-gray-100">
+                        <Heart className="w-4 h-4 mr-2" />
+                        Donate Now
+                      </Button>
+                    </Link>
+                    <Link href="/volunteer" className="block">
+                      <Button className="w-full bg-white text-ngo-blue hover:bg-gray-100">
+                        <Users className="w-4 h-4 mr-2" />
+                        Volunteer
+                      </Button>
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
       </section>
@@ -641,115 +548,36 @@ export default function ProjectDetail({ project }: ProjectDetailProps) {
   )
 }
 
-// This function gets called at build time
-export const getStaticPaths: GetStaticPaths = async () => {
-  // In a real application, you would fetch this from your API
-  const projects = [
-    'vision-restoration-initiative-phase-1',
-    'rural-education-excellence-program',
-    'clean-water-access-initiative',
-    'women-empowerment-through-skills',
-    'digital-health-network-pilot',
-    'community-resilience-building'
-  ]
+export const getServerSideProps: GetServerSideProps<ProjectDetailPageProps> = async ({ params }) => {
+  try {
+    const { slug } = params!
 
-  const paths = projects.map((slug) => ({
-    params: { slug }
-  }))
-
-  return {
-    paths,
-    fallback: 'blocking' // Enable ISR for new projects
-  }
-}
-
-// This function gets called at build time for each project
-export const getStaticProps: GetStaticProps = async ({ params }) => {
-  const slug = params?.slug as string
-
-  // In a real application, you would fetch this from your API
-  // For now, we'll return a placeholder project
-  const project: Project = {
-    id: '1',
-    title: `${slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}`,
-    slug,
-    category: 'healthcare',
-    status: 'completed',
-    startDate: '2023-01-15',
-    endDate: '2023-12-30',
-    location: 'Delhi, Haryana, Punjab',
-    description: 'This is a placeholder project description. In a real application, this would be fetched from your database or API based on the project slug.',
-    shortDescription: 'A comprehensive project that has created significant impact in the community.',
-    totalBudget: '₹25,00,000',
-    fundsRaised: '₹25,00,000',
-    beneficiaries: 2150,
-    duration: '12 months',
-    objectives: [
-      'Achieve primary project goals',
-      'Create sustainable impact',
-      'Build community partnerships',
-      'Deliver measurable results'
-    ],
-    keyAchievements: [
-      'Successfully completed all planned activities',
-      'Exceeded beneficiary targets',
-      'Created lasting community impact',
-      'Built strong partnership network'
-    ],
-    challenges: [
-      'Initial community resistance',
-      'Logistical difficulties',
-      'Resource constraints',
-      'Weather-related delays'
-    ],
-    lessons: [
-      'Community engagement is crucial',
-      'Flexibility in planning is important',
-      'Strong partnerships ensure success',
-      'Regular monitoring improves outcomes'
-    ],
-    partners: [
-      'Government Department',
-      'Local NGO Partners',
-      'Community Organizations',
-      'International Donors'
-    ],
-    team: [
-      'Project Director',
-      'Field Coordinator',
-      'Community Liaison',
-      'Technical Specialist'
-    ],
-    images: [
-      '/assets/img/projects/placeholder-1.jpg',
-      '/assets/img/projects/placeholder-2.jpg',
-      '/assets/img/projects/placeholder-3.jpg'
-    ],
-    documents: [
-      { name: 'Project Final Report', type: 'PDF', url: '/documents/final-report.pdf' },
-      { name: 'Impact Assessment', type: 'PDF', url: '/documents/impact-assessment.pdf' },
-      { name: 'Financial Summary', type: 'Excel', url: '/documents/financial-summary.xlsx' }
-    ],
-    tags: ['healthcare', 'community', 'impact', 'transformation'],
-    impactMetrics: [
-      { metric: 'Beneficiaries Served', value: '2,150', description: 'Total number of direct beneficiaries' },
-      { metric: 'Success Rate', value: '95%', description: 'Percentage of successful outcomes' },
-      { metric: 'Community Satisfaction', value: '98%', description: 'Community satisfaction rating' },
-      { metric: 'Sustainability Score', value: '90%', description: 'Long-term sustainability rating' }
-    ]
-  }
-
-  // Return 404 if project not found
-  if (!project) {
-    return {
-      notFound: true
+    if (!slug || Array.isArray(slug)) {
+      return { notFound: true }
     }
-  }
 
-  return {
-    props: {
-      project
-    },
-    revalidate: 3600 // Revalidate every hour
+    // Fetch project by slug from API
+    const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000'
+    const response = await fetch(`${baseUrl}/api/projects?action=by-slug&slug=${slug}`)
+
+    if (!response.ok) {
+      return { notFound: true }
+    }
+
+    const result = await response.json()
+    const project = result.data
+
+    if (!project) {
+      return { notFound: true }
+    }
+
+    return {
+      props: {
+        project
+      }
+    }
+  } catch (error) {
+    console.error('Error fetching project:', error)
+    return { notFound: true }
   }
 }

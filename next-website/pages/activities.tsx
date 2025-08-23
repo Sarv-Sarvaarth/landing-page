@@ -1,230 +1,67 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Head from 'next/head'
 import Image from 'next/image'
+import { GetServerSideProps } from 'next'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import ActivityModal, { Activity } from '@/components/modals/ActivityModal'
 import { Search, Filter, Calendar, MapPin, Users, Target, Heart, BookOpen, Stethoscope, Home, Building2, Clock, CheckCircle2, AlertCircle, Calendar as CalendarIcon } from 'lucide-react'
 
-export default function Activities() {
+interface ActivitiesPageProps {
+  initialActivities: Activity[]
+  initialStats: {
+    total: number
+    completed: number
+    ongoing: number
+    upcoming: number
+    totalBeneficiaries: number
+  }
+}
+
+export default function Activities({ initialActivities, initialStats }: ActivitiesPageProps) {
+  const [activities, setActivities] = useState<Activity[]>(initialActivities)
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [selectedStatus, setSelectedStatus] = useState<string>('all')
+  const [isLoading, setIsLoading] = useState(false)
 
-  // Placeholder activities data - this would come from an API in real implementation
-  const activities: Activity[] = [
-    {
-      id: '1',
-      title: 'Free Eye Surgery Camp - Dwarka',
-      category: 'healthcare',
-      status: 'completed',
-      date: 'March 15-17, 2024',
-      location: 'Dwarka, New Delhi',
-      description: 'Comprehensive eye surgery camp providing free cataract surgeries to underprivileged patients.',
-      fullDescription: 'Our comprehensive eye surgery camp in Dwarka successfully provided free cataract surgeries to over 150 underprivileged patients. The three-day camp included pre-operative consultations, surgical procedures, and post-operative care. Working with local healthcare partners, we were able to restore vision for patients who had been suffering from cataracts for years. The camp also included educational sessions about eye care and prevention of common eye diseases.',
-      objectives: [
-        'Provide free cataract surgeries to underprivileged patients',
-        'Conduct comprehensive eye examinations',
-        'Educate community about eye care and prevention',
-        'Follow up with post-operative care and support'
-      ],
-      beneficiaries: 150,
-      impact: [
-        '150 successful cataract surgeries performed',
-        '300+ comprehensive eye examinations conducted',
-        '95% success rate in vision restoration',
-        'Community education reached 500+ people',
-        'Established ongoing eye care support network'
-      ],
-      images: [
-        '/assets/img/activities/eye-surgery-1.jpg',
-        '/assets/img/activities/eye-surgery-2.jpg',
-        '/assets/img/activities/eye-surgery-3.jpg',
-        '/assets/img/activities/eye-surgery-4.jpg'
-      ],
-      videos: [
-        '/assets/video/eye-surgery-testimonials.mp4'
-      ],
-      documents: [
-        { name: 'Medical Camp Report.pdf', url: '/documents/eye-surgery-report.pdf' },
-        { name: 'Patient Statistics.xlsx', url: '/documents/eye-surgery-stats.xlsx' }
-      ],
-      team: ['Dr. Rajesh Kumar', 'Dr. Priya Sharma', 'Nurse Anita Singh', 'Volunteer Coordinator Raj'],
-      budget: '₹3,50,000',
-      sponsors: ['Local Eye Hospital', 'Delhi Medical Association', 'Community Donors'],
-      tags: ['healthcare', 'eye-surgery', 'cataract', 'dwarka', 'medical-camp']
-    },
-    {
-      id: '2',
-      title: 'Rural School Development Project',
-      category: 'education',
-      status: 'ongoing',
-      date: 'January 2024 - December 2024',
-      location: 'Rajasthan Villages',
-      description: 'Comprehensive school infrastructure development and educational support in rural Rajasthan.',
-      fullDescription: 'Our ongoing rural school development project is transforming educational opportunities in 5 villages across Rajasthan. The project includes infrastructure development, teacher training, digital learning setup, and student support programs. We are working closely with local communities to ensure sustainable impact and long-term educational growth.',
-      objectives: [
-        'Develop modern school infrastructure in 5 villages',
-        'Train 25 local teachers in modern teaching methods',
-        'Establish digital learning centers',
-        'Provide scholarships to deserving students',
-        'Create sustainable education support systems'
-      ],
-      beneficiaries: 800,
-      impact: [
-        '3 schools renovated with modern facilities',
-        '15 teachers trained in digital teaching methods',
-        '2 computer labs established',
-        '50 scholarships awarded to deserving students',
-        'Library with 1000+ books created'
-      ],
-      images: [
-        '/assets/img/activities/school-dev-1.jpg',
-        '/assets/img/activities/school-dev-2.jpg',
-        '/assets/img/activities/school-dev-3.jpg'
-      ],
-      team: ['Education Coordinator Meera', 'Infrastructure Manager Amit', 'Teacher Trainer Sunita', 'Field Coordinator Ravi'],
-      budget: '₹15,00,000',
-      sponsors: ['Education Ministry Grant', 'Private Donors', 'Local Business Community'],
-      tags: ['education', 'rural-development', 'schools', 'rajasthan', 'infrastructure']
-    },
-    {
-      id: '3',
-      title: 'Community Food Distribution Drive',
-      category: 'social-welfare',
-      status: 'completed',
-      date: 'December 20-25, 2023',
-      location: 'Multiple Delhi Locations',
-      description: 'Large-scale food distribution program during winter months for homeless and underprivileged families.',
-      fullDescription: 'Our winter food distribution drive successfully provided nutritious meals and food packages to homeless individuals and underprivileged families across Delhi. The 6-day program included daily meal distribution, essential food packages, warm clothing distribution, and health checkups. We partnered with local restaurants, volunteers, and healthcare providers to maximize impact.',
-      objectives: [
-        'Provide nutritious meals to homeless individuals',
-        'Distribute essential food packages to families',
-        'Offer warm clothing and blankets',
-        'Conduct basic health checkups',
-        'Connect beneficiaries with ongoing support services'
-      ],
-      beneficiaries: 1200,
-      impact: [
-        '7,200 meals distributed over 6 days',
-        '500 food packages provided to families',
-        '800 pieces of warm clothing distributed',
-        '300 health checkups conducted',
-        '150 families connected to ongoing support programs'
-      ],
-      images: [
-        '/assets/img/activities/food-distribution-1.jpg',
-        '/assets/img/activities/food-distribution-2.jpg',
-        '/assets/img/activities/food-distribution-3.jpg'
-      ],
-      team: ['Social Worker Kavita', 'Volunteer Manager Suresh', 'Cook Team Lead Radha', 'Medical Officer Dr. Anil'],
-      budget: '₹2,80,000',
-      sponsors: ['Local Restaurants', 'Grocery Stores', 'Individual Donors'],
-      tags: ['social-welfare', 'food-distribution', 'homeless', 'winter-relief', 'delhi']
-    },
-    {
-      id: '4',
-      title: 'Village Water Purification Project',
-      category: 'community-development',
-      status: 'upcoming',
-      date: 'April 2024 - June 2024',
-      location: 'Haryana Villages',
-      description: 'Installation of water purification systems and sanitation facilities in rural Haryana villages.',
-      fullDescription: 'Our upcoming village water purification project aims to provide clean drinking water and improved sanitation facilities to 8 villages in Haryana. The project includes installation of community water purification systems, individual household water filters, sanitation facility upgrades, and community education about water hygiene and health.',
-      objectives: [
-        'Install 8 community water purification systems',
-        'Provide household water filters to 200 families',
-        'Upgrade sanitation facilities in villages',
-        'Conduct water hygiene education programs',
-        'Establish maintenance and monitoring systems'
-      ],
-      beneficiaries: 2000,
-      impact: [
-        'Clean drinking water access for 2000+ people',
-        'Reduced waterborne disease incidents expected',
-        'Improved community health and hygiene',
-        'Local employment through maintenance jobs',
-        'Sustainable water management practices'
-      ],
-      images: [
-        '/assets/img/activities/water-project-1.jpg',
-        '/assets/img/activities/water-project-2.jpg'
-      ],
-      team: ['Water Engineer Prakash', 'Community Coordinator Rekha', 'Health Educator Mohan'],
-      budget: '₹8,50,000',
-      sponsors: ['Water Ministry Grant', 'International NGO Partnership', 'Corporate CSR Funds'],
-      tags: ['community-development', 'water-purification', 'sanitation', 'haryana', 'health']
-    },
-    {
-      id: '5',
-      title: 'Digital Literacy Program for Women',
-      category: 'education',
-      status: 'planned',
-      date: 'July 2024 - December 2024',
-      location: 'Urban Slums, Delhi',
-      description: 'Comprehensive digital literacy and skill development program for women in urban slum areas.',
-      fullDescription: 'Our planned digital literacy program will empower women in urban slum areas with essential digital skills and online earning opportunities. The 6-month program includes basic computer training, smartphone usage, online banking, digital payment systems, and introduction to online work opportunities.',
-      objectives: [
-        'Train 300 women in basic digital literacy',
-        'Introduce online earning opportunities',
-        'Enable digital banking and payment usage',
-        'Create sustainable skill development network',
-        'Establish ongoing mentorship programs'
-      ],
-      beneficiaries: 300,
-      impact: [
-        'Digital literacy for 300+ women',
-        'Increased earning potential through online work',
-        'Financial inclusion through digital banking',
-        'Reduced dependency on traditional employment',
-        'Empowered community leadership'
-      ],
-      images: [
-        '/assets/img/activities/digital-literacy-1.jpg'
-      ],
-      team: ['IT Trainer Nisha', 'Women Coordinator Deepa', 'Skill Development Officer Arjun'],
-      budget: '₹4,20,000',
-      sponsors: ['Tech Company CSR', 'Skill Development Ministry', 'Women Empowerment Foundation'],
-      tags: ['education', 'digital-literacy', 'women-empowerment', 'skill-development', 'delhi']
-    },
-    {
-      id: '6',
-      title: 'Mobile Healthcare Van Service',
-      category: 'healthcare',
-      status: 'ongoing',
-      date: 'February 2024 - January 2025',
-      location: 'Remote Villages, UP',
-      description: 'Mobile healthcare van providing medical services to remote villages with limited healthcare access.',
-      fullDescription: 'Our mobile healthcare van service brings essential medical care directly to remote villages in Uttar Pradesh. The van is equipped with basic medical equipment, medicines, and staffed by qualified healthcare professionals. The service includes regular health checkups, vaccination programs, maternal health support, and emergency medical assistance.',
-      objectives: [
-        'Provide regular healthcare access to remote areas',
-        'Conduct preventive health screenings',
-        'Support maternal and child health programs',
-        'Deliver vaccination and immunization services',
-        'Create health awareness in communities'
-      ],
-      beneficiaries: 5000,
-      impact: [
-        '2000+ health consultations provided',
-        '500+ vaccinations administered',
-        '100+ maternal health consultations',
-        '50+ emergency medical assists',
-        'Health awareness reached 3000+ people'
-      ],
-      images: [
-        '/assets/img/activities/mobile-healthcare-1.jpg',
-        '/assets/img/activities/mobile-healthcare-2.jpg',
-        '/assets/img/activities/mobile-healthcare-3.jpg'
-      ],
-      team: ['Dr. Mobile Unit Head Sanjay', 'Nurse Coordinator Pinki', 'Driver-Technician Ramesh'],
-      budget: '₹12,00,000',
-      sponsors: ['Healthcare Foundation', 'Government Health Department', 'Medical Equipment Donors'],
-      tags: ['healthcare', 'mobile-service', 'rural-health', 'preventive-care', 'uttar-pradesh']
-    }
-  ]
+  // Convert database activities to frontend format
+  const convertActivities = (dbActivities: any[]): Activity[] => {
+    return dbActivities.map(activity => ({
+      id: activity.id.toString(),
+      title: activity.title,
+      category: activity.category,
+      status: activity.status,
+      date: activity.startDate && activity.endDate
+        ? `${new Date(activity.startDate).toLocaleDateString('en-IN')} - ${new Date(activity.endDate).toLocaleDateString('en-IN')}`
+        : activity.startDate
+        ? new Date(activity.startDate).toLocaleDateString('en-IN')
+        : 'Date TBD',
+      location: activity.location,
+      description: activity.shortDescription,
+      fullDescription: activity.fullDescription,
+      objectives: activity.objectives ? JSON.parse(activity.objectives) : [],
+      beneficiaries: activity.beneficiaries,
+      impact: activity.impact ? JSON.parse(activity.impact) : [],
+      images: activity.images ? JSON.parse(activity.images) : [],
+      videos: activity.videos ? JSON.parse(activity.videos) : [],
+      documents: activity.documents ? JSON.parse(activity.documents) : [],
+      team: activity.team ? JSON.parse(activity.team) : [],
+      budget: activity.budget || '',
+      sponsors: activity.sponsors ? JSON.parse(activity.sponsors) : [],
+      tags: activity.tags ? JSON.parse(activity.tags) : []
+    }))
+  }
+
+  useEffect(() => {
+    const converted = convertActivities(initialActivities)
+    setActivities(converted)
+  }, [initialActivities])
+
+
 
   const categories = [
     { id: 'all', label: 'All Categories', icon: Target },
@@ -283,13 +120,7 @@ export default function Activities() {
     }
   }
 
-  const activityStats = {
-    total: activities.length,
-    completed: activities.filter(a => a.status === 'completed').length,
-    ongoing: activities.filter(a => a.status === 'ongoing').length,
-    upcoming: activities.filter(a => a.status === 'upcoming').length + activities.filter(a => a.status === 'planned').length,
-    totalBeneficiaries: activities.reduce((sum, a) => sum + a.beneficiaries, 0)
-  }
+  const activityStats = initialStats
 
   return (
     <>
@@ -536,4 +367,66 @@ export default function Activities() {
       />
     </>
   )
+}
+
+export const getServerSideProps: GetServerSideProps<ActivitiesPageProps> = async () => {
+  try {
+    // Fetch activities and stats from API
+    const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000'
+
+    const [activitiesResponse, statsResponse] = await Promise.all([
+      fetch(`${baseUrl}/api/activities`),
+      fetch(`${baseUrl}/api/activities?action=stats`)
+    ])
+
+    let activities = []
+    let stats = {
+      total: 0,
+      completed: 0,
+      ongoing: 0,
+      upcoming: 0,
+      totalBeneficiaries: 0
+    }
+
+    if (activitiesResponse.ok) {
+      const activitiesData = await activitiesResponse.json()
+      activities = activitiesData.data?.activities || []
+    }
+
+    if (statsResponse.ok) {
+      const statsData = await statsResponse.json()
+      const dbStats = statsData.data || {}
+
+      stats = {
+        total: dbStats.publishedActivities || 0,
+        completed: dbStats.completedActivities || 0,
+        ongoing: dbStats.ongoingActivities || 0,
+        upcoming: dbStats.upcomingActivities || 0,
+        totalBeneficiaries: dbStats.totalBeneficiaries || 0
+      }
+    }
+
+    return {
+      props: {
+        initialActivities: activities,
+        initialStats: stats
+      }
+    }
+  } catch (error) {
+    console.error('Error fetching activities data:', error)
+
+    // Return empty data on error
+    return {
+      props: {
+        initialActivities: [],
+        initialStats: {
+          total: 0,
+          completed: 0,
+          ongoing: 0,
+          upcoming: 0,
+          totalBeneficiaries: 0
+        }
+      }
+    }
+  }
 }

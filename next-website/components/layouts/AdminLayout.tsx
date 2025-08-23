@@ -5,9 +5,15 @@ import { Button } from '@/components/ui/button'
 import {
   Shield,
   Users,
+  UserPlus,
+  Crown,
+  Heart,
+  LayoutDashboard,
   LogOut,
   Menu,
-  X
+  X,
+  Target,
+  Home
 } from 'lucide-react'
 
 interface AdminLayoutProps {
@@ -35,10 +41,46 @@ export default function AdminLayout({ children, user }: AdminLayoutProps) {
 
   const navigationItems = [
     {
-      name: 'Volunteer Roles',
+      name: 'Dashboard',
       href: '/admin',
-      icon: Users,
+      icon: LayoutDashboard,
       current: router.pathname === '/admin'
+    },
+    {
+      name: 'Projects',
+      href: '/admin/projects',
+      icon: Home,
+      current: router.pathname === '/admin/projects'
+    },
+    {
+      name: 'Activities',
+      href: '/admin/activities',
+      icon: Target,
+      current: router.pathname === '/admin/activities'
+    },
+    {
+      name: 'Volunteer Roles',
+      href: '/admin/volunteer-roles',
+      icon: UserPlus,
+      current: router.pathname === '/admin/volunteer-roles'
+    },
+    {
+      name: 'Volunteers',
+      href: '/admin/volunteers',
+      icon: Users,
+      current: router.pathname === '/admin/volunteers'
+    },
+    {
+      name: 'Members',
+      href: '/admin/members',
+      icon: Crown,
+      current: router.pathname === '/admin/members'
+    },
+    {
+      name: 'Donors',
+      href: '/admin/donors',
+      icon: Heart,
+      current: router.pathname === '/admin/donors'
     }
   ]
 
@@ -47,32 +89,32 @@ export default function AdminLayout({ children, user }: AdminLayoutProps) {
       {/* Navigation */}
       <nav className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
+          <div className="flex justify-between h-14">
             {/* Left side */}
             <div className="flex items-center">
               {/* Logo/Brand */}
               <div className="flex items-center">
-                <Shield className="w-8 h-8 text-ngo-blue mr-3" />
-                <h1 className="text-xl font-semibold text-gray-900">
-                  Sarvaarth Admin
+                <Shield className="w-6 h-6 text-ngo-blue mr-2" />
+                <h1 className="text-lg font-semibold text-gray-900">
+                  Admin
                 </h1>
               </div>
 
               {/* Desktop Navigation */}
-              <div className="hidden md:ml-10 md:flex md:space-x-8">
+              <div className="hidden md:ml-8 md:flex md:space-x-4">
                 {navigationItems.map((item) => {
                   const Icon = item.icon
                   return (
                     <Link
                       key={item.name}
                       href={item.href}
-                      className={`inline-flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                      className={`inline-flex items-center px-2 py-1.5 text-sm font-medium rounded-md transition-colors ${
                         item.current
                           ? 'bg-ngo-blue text-white'
                           : 'text-gray-600 hover:text-ngo-blue hover:bg-gray-50'
                       }`}
                     >
-                      <Icon className="w-4 h-4 mr-2" />
+                      <Icon className="w-4 h-4 mr-1.5" />
                       {item.name}
                     </Link>
                   )
@@ -81,12 +123,12 @@ export default function AdminLayout({ children, user }: AdminLayoutProps) {
             </div>
 
             {/* Right side */}
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3">
               {user && (
                 <>
                   {/* User info */}
-                  <div className="hidden md:block text-sm text-gray-600">
-                    Welcome, <span className="font-medium">{user.name}</span>
+                  <div className="hidden md:block text-xs text-gray-600">
+                    <span className="font-medium">{user.name}</span>
                   </div>
 
                   {/* Logout button */}
@@ -94,9 +136,9 @@ export default function AdminLayout({ children, user }: AdminLayoutProps) {
                     variant="outline"
                     size="sm"
                     onClick={handleLogout}
-                    className="hidden md:flex"
+                    className="hidden md:flex text-xs px-2 py-1"
                   >
-                    <LogOut className="w-4 h-4 mr-2" />
+                    <LogOut className="w-3 h-3 mr-1" />
                     Logout
                   </Button>
                 </>

@@ -82,4 +82,157 @@ export type SelectVolunteerRole = typeof volunteerRolesTable.$inferSelect;
 export type InsertVolunteer = typeof volunteersTable.$inferInsert;
 export type SelectVolunteer = typeof volunteersTable.$inferSelect;
 
+// Membership & Donation Table
+export const membershipDonationTable = sqliteTable('membership_donation', {
+  id: integer('id').primaryKey(),
+  email: text('email').notNull(),
+  salutation: text('salutation').notNull(), // Mr., Ms., Mrs., Dr., Prof.
+  fullName: text('full_name').notNull(),
+  address: text('address').notNull(),
+  panNumber: text('pan_number').notNull(), // Required for tax receipts
+  aadhaarNumber: text('aadhaar_number').notNull(), // For identity verification
+  occupation: text('occupation').notNull(),
+  professionalDetails: text('professional_details').notNull(),
+
+  // Type and Role
+  type: text('type').notNull(), // 'donation' or 'membership'
+  role: text('role').notNull(), // 'member' or 'donor'
+
+  // Payment Details
+  amount: real('amount').notNull(), // Donation amount or membership fee (1000)
+  paymentMode: text('payment_mode').notNull(), // 'cash', 'upi', 'netbanking'
+
+  // Receipt Information
+  receiptFilename: text('receipt_filename'), // Original filename
+  receiptPath: text('receipt_path'), // File path/URL (for future S3 integration)
+  receiptMimeType: text('receipt_mime_type'), // File type
+  receiptSize: integer('receipt_size'), // File size in bytes
+
+  // Status and Processing
+  status: text('status').default('pending_verification').notNull(),
+  // pending_verification, payment_verified, approved, active, rejected
+  verifiedDate: text('verified_date'),
+  verifiedBy: integer('verified_by').references(() => usersTable.id), // Admin who verified
+
+  // For members
+  membershipStartDate: text('membership_start_date'), // When membership becomes active
+  membershipExpiryDate: text('membership_expiry_date'), // 1 year from start date
+  membershipId: text('membership_id').unique(), // Generated membership ID
+
+  // Tax receipt details
+  taxReceiptNumber: text('tax_receipt_number').unique(), // Generated tax receipt number
+  taxReceiptIssued: integer('tax_receipt_issued', { mode: 'boolean' }).default(false),
+  taxReceiptDate: text('tax_receipt_date'),
+
+  // Administrative
+  notes: text('notes'), // Admin notes
+  paymentReference: text('payment_reference'), // UPI/Bank reference from receipt
+
+  createdAt: text('created_at')
+    .default(sql`(CURRENT_TIMESTAMP)`)
+    .notNull(),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).$onUpdate(() => new Date()),
+});
+
+// Type exports for membership & donation
+export type InsertMembershipDonation = typeof membershipDonationTable.$inferInsert;
+export type SelectMembershipDonation = typeof membershipDonationTable.$inferSelect;
+
+// Activities Table
+export const activitiesTable = sqliteTable('activities', {
+  id: integer('id').primaryKey(),
+  title: text('title').notNull(),
+  category: text('category').notNull(), // 'healthcare', 'education', 'social-welfare', 'community-development'
+  status: text('status').notNull().default('planned'), // 'planned', 'upcoming', 'ongoing', 'completed', 'cancelled'
+  startDate: text('start_date'), // Start date of activity
+  endDate: text('end_date'), // End date of activity (nullable for ongoing)
+  location: text('location').notNull(),
+
+  // Content
+  shortDescription: text('short_description').notNull(), // Brief description for cards
+  fullDescription: text('full_description').notNull(), // Detailed description
+  objectives: text('objectives').notNull(), // JSON array of objectives
+
+  // Impact & Metrics
+  beneficiaries: integer('beneficiaries').notNull().default(0),
+  budget: text('budget'), // Budget amount as string (e.g., "₹3,50,000")
+  impact: text('impact'), // JSON array of impact statements
+
+  // Media & Documents
+  images: text('images'), // JSON array of image paths/URLs
+  videos: text('videos'), // JSON array of video paths/URLs
+  documents: text('documents'), // JSON array of document objects {name, url}
+
+  // Team & Organization
+  team: text('team'), // JSON array of team member names
+  sponsors: text('sponsors'), // JSON array of sponsor names
+  tags: text('tags'), // JSON array of tags for searching
+
+  // Admin fields
+  createdBy: integer('created_by').references(() => usersTable.id),
+  featured: integer('featured', { mode: 'boolean' }).default(false), // Featured on homepage
+  publishedAt: text('published_at'), // When the activity was published
+
+  createdAt: text('created_at')
+    .default(sql`(CURRENT_TIMESTAMP)`)
+    .notNull(),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).$onUpdate(() => new Date()),
+});
+
+// Type exports for activities
+export type InsertActivity = typeof activitiesTable.$inferInsert;
+export type SelectActivity = typeof activitiesTable.$inferSelect;
+
+// Projects Table
+export const projectsTable = sqliteTable('projects', {
+  id: integer('id').primaryKey(),
+  title: text('title').notNull(),
+  slug: text('slug').notNull().unique(), // URL-friendly version of title
+  category: text('category').notNull(), // 'healthcare', 'education', 'social-welfare', 'community-development', 'infrastructure'
+  status: text('status').notNull().default('planned'), // 'planned', 'ongoing', 'completed', 'paused', 'archived'
+  startDate: text('start_date'), // Start date of project
+  endDate: text('end_date'), // End date of project (nullable for ongoing)
+  location: text('location').notNull(),
+
+  // Content
+  shortDescription: text('short_description').notNull(), // Brief description for cards
+  fullDescription: text('full_description').notNull(), // Detailed description
+  objectives: text('objectives').notNull(), // JSON array of objectives
+
+  // Financial & Impact
+  totalBudget: text('total_budget'), // Total budget as string (e.g., "₹25,00,000")
+  fundsRaised: text('funds_raised'), // Funds raised so far
+  beneficiaries: integer('beneficiaries').notNull().default(0),
+  duration: text('duration'), // Project duration (e.g., "12 months")
+
+  // Project Details
+  keyAchievements: text('key_achievements'), // JSON array of achievements
+  challenges: text('challenges'), // JSON array of challenges faced
+  lessons: text('lessons'), // JSON array of lessons learned
+  partners: text('partners'), // JSON array of partner organizations
+  team: text('team'), // JSON array of team members
+
+  // Media & Documents
+  images: text('images'), // JSON array of image paths/URLs
+  documents: text('documents'), // JSON array of document objects {name, type, url}
+
+  // Impact Metrics
+  impactMetrics: text('impact_metrics'), // JSON array of impact metric objects
+  tags: text('tags'), // JSON array of tags for searching
+
+  // Admin fields
+  createdBy: integer('created_by').references(() => usersTable.id),
+  featured: integer('featured', { mode: 'boolean' }).default(false), // Featured on homepage
+  publishedAt: text('published_at'), // When the project was published
+
+  createdAt: text('created_at')
+    .default(sql`(CURRENT_TIMESTAMP)`)
+    .notNull(),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).$onUpdate(() => new Date()),
+});
+
+// Type exports for projects
+export type InsertProject = typeof projectsTable.$inferInsert;
+export type SelectProject = typeof projectsTable.$inferSelect;
+
 

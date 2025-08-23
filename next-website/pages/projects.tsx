@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Head from 'next/head'
 import Image from 'next/image'
 import Link from 'next/link'
+import { GetServerSideProps } from 'next'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -60,435 +61,73 @@ interface Project {
   }[]
 }
 
-export default function Projects() {
+interface ProjectsPageProps {
+  initialProjects: Project[]
+  initialStats: {
+    total: number
+    completed: number
+    ongoing: number
+    totalBeneficiaries: number
+    totalBudget: number
+  }
+}
+
+export default function Projects({ initialProjects, initialStats }: ProjectsPageProps) {
+  // Helper function to safely parse JSON
+  const safeJsonParse = (jsonString: string | null | undefined, fallback: any = []) => {
+    if (!jsonString) return fallback
+    try {
+      return JSON.parse(jsonString)
+    } catch (error) {
+      console.error('Failed to parse JSON:', jsonString, error)
+      return fallback
+    }
+  }
+
+  // Convert database projects to frontend format
+  const convertProjects = (dbProjects: any[]): Project[] => {
+    return dbProjects.map(project => ({
+      id: project.id.toString(),
+      title: project.title,
+      slug: project.slug,
+      category: project.category as 'healthcare' | 'education' | 'social-welfare' | 'community-development' | 'infrastructure',
+      status: project.status as 'completed' | 'ongoing' | 'paused' | 'archived',
+      startDate: project.startDate,
+      endDate: project.endDate,
+      location: project.location,
+      description: project.fullDescription,
+      shortDescription: project.shortDescription,
+      totalBudget: project.totalBudget || '₹0',
+      fundsRaised: project.fundsRaised || '₹0',
+      beneficiaries: project.beneficiaries,
+      duration: project.duration || 'TBD',
+      objectives: safeJsonParse(project.objectives, []),
+      keyAchievements: safeJsonParse(project.keyAchievements, []),
+      challenges: safeJsonParse(project.challenges, []),
+      lessons: safeJsonParse(project.lessons, []),
+      partners: safeJsonParse(project.partners, []),
+      team: safeJsonParse(project.team, []),
+      images: safeJsonParse(project.images, []),
+      documents: safeJsonParse(project.documents, []),
+      tags: safeJsonParse(project.tags, []),
+      impactMetrics: safeJsonParse(project.impactMetrics, [])
+    }))
+  }
+
+  // Convert projects immediately to avoid rendering raw database data
+  const [projects, setProjects] = useState<Project[]>(() => convertProjects(initialProjects))
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [selectedStatus, setSelectedStatus] = useState<string>('all')
   const [selectedYear, setSelectedYear] = useState<string>('all')
+  const [isLoading, setIsLoading] = useState(false)
 
-  // Placeholder projects data - this would come from an API in real implementation
-  const projects: Project[] = [
-    {
-      id: '1',
-      title: 'Vision Restoration Initiative - Phase I',
-      slug: 'vision-restoration-initiative-phase-1',
-      category: 'healthcare',
-      status: 'completed',
-      startDate: '2023-01-15',
-      endDate: '2023-12-30',
-      location: 'Delhi, Haryana, Punjab',
-      description: 'Comprehensive eye care project providing free cataract surgeries and vision correction services to underprivileged communities across North India.',
-      shortDescription: 'Free cataract surgery program serving 2000+ patients across North India with complete post-operative care.',
-      totalBudget: '₹25,00,000',
-      fundsRaised: '₹25,00,000',
-      beneficiaries: 2150,
-      duration: '12 months',
-      objectives: [
-        'Provide free cataract surgeries to 2000+ patients',
-        'Establish mobile eye care units in rural areas',
-        'Train local healthcare workers in basic eye care',
-        'Create awareness about preventable blindness',
-        'Set up follow-up care network for patients'
-      ],
-      keyAchievements: [
-        '2,150 successful cataract surgeries performed',
-        '98% success rate in vision restoration',
-        '25 mobile eye camps conducted',
-        '150 healthcare workers trained',
-        '5,000+ people educated about eye care'
-      ],
-      challenges: [
-        'Limited transportation for patients in remote areas',
-        'Language barriers in rural communities',
-        'Seasonal accessibility issues during monsoons',
-        'Initial resistance to surgical procedures'
-      ],
-      lessons: [
-        'Community trust building is crucial for project success',
-        'Local partnerships significantly improve reach',
-        'Post-operative care follow-up requires dedicated resources',
-        'Patient education improves surgical outcomes'
-      ],
-      partners: [
-        'Delhi Eye Institute',
-        'State Health Department',
-        'Local Village Councils',
-        'Rotary International'
-      ],
-      team: [
-        'Dr. Rajesh Kumar - Project Director',
-        'Dr. Priya Sharma - Senior Surgeon',
-        'Anita Singh - Community Coordinator',
-        'Raj Patel - Logistics Manager'
-      ],
-      images: [
-        '/assets/img/projects/vision-restoration-1.jpg',
-        '/assets/img/projects/vision-restoration-2.jpg',
-        '/assets/img/projects/vision-restoration-3.jpg'
-      ],
-      documents: [
-        { name: 'Project Final Report', type: 'PDF', url: '/documents/vision-restoration-final-report.pdf' },
-        { name: 'Impact Assessment', type: 'PDF', url: '/documents/vision-restoration-impact.pdf' },
-        { name: 'Financial Summary', type: 'Excel', url: '/documents/vision-restoration-finances.xlsx' }
-      ],
-      tags: ['healthcare', 'eye-care', 'surgery', 'rural-health', 'north-india'],
-      impactMetrics: [
-        { metric: 'Patients Treated', value: '2,150', description: 'Total number of patients who received cataract surgery' },
-        { metric: 'Success Rate', value: '98%', description: 'Percentage of successful vision restoration surgeries' },
-        { metric: 'Cost per Patient', value: '₹1,163', description: 'Average cost per patient including all services' },
-        { metric: 'Quality of Life', value: '95%', description: 'Patients reporting improved quality of life post-surgery' }
-      ]
-    },
-    {
-      id: '2',
-      title: 'Rural Education Excellence Program',
-      slug: 'rural-education-excellence-program',
-      category: 'education',
-      status: 'completed',
-      startDate: '2022-06-01',
-      endDate: '2024-03-31',
-      location: 'Rajasthan, Madhya Pradesh',
-      description: 'Multi-year educational transformation project focusing on infrastructure development, teacher training, and digital literacy in rural schools.',
-      shortDescription: 'Comprehensive education program transforming 50 rural schools with modern infrastructure and digital learning.',
-      totalBudget: '₹1,20,00,000',
-      fundsRaised: '₹1,20,00,000',
-      beneficiaries: 8500,
-      duration: '22 months',
-      objectives: [
-        'Upgrade infrastructure in 50 rural schools',
-        'Train 200 teachers in modern teaching methods',
-        'Establish computer labs and digital learning centers',
-        'Improve student learning outcomes by 40%',
-        'Create sustainable education support systems'
-      ],
-      keyAchievements: [
-        '50 schools completely renovated and modernized',
-        '220 teachers trained in digital teaching methods',
-        '25 computer labs established with internet connectivity',
-        '45% improvement in student test scores',
-        'Zero dropout rate achieved in participating schools'
-      ],
-      challenges: [
-        'Inconsistent electricity supply in remote areas',
-        'Limited internet connectivity',
-        'Resistance to change from traditional teaching methods',
-        'Maintenance of computer equipment in rural settings'
-      ],
-      lessons: [
-        'Teacher buy-in is essential for successful implementation',
-        'Community involvement improves project sustainability',
-        'Regular monitoring and feedback loops are crucial',
-        'Local capacity building ensures long-term success'
-      ],
-      partners: [
-        'State Education Department',
-        'Microsoft Education',
-        'Local School Management Committees',
-        'Teacher Training Institutes'
-      ],
-      team: [
-        'Meera Gupta - Education Director',
-        'Amit Sharma - Infrastructure Lead',
-        'Sunita Devi - Teacher Training Coordinator',
-        'Ravi Kumar - Technology Specialist'
-      ],
-      images: [
-        '/assets/img/projects/rural-education-1.jpg',
-        '/assets/img/projects/rural-education-2.jpg',
-        '/assets/img/projects/rural-education-3.jpg'
-      ],
-      documents: [
-        { name: 'Project Completion Report', type: 'PDF', url: '/documents/education-program-report.pdf' },
-        { name: 'Student Performance Analysis', type: 'PDF', url: '/documents/student-performance-analysis.pdf' },
-        { name: 'Infrastructure Development Photos', type: 'ZIP', url: '/documents/infrastructure-photos.zip' }
-      ],
-      tags: ['education', 'rural-development', 'infrastructure', 'teacher-training', 'digital-literacy'],
-      impactMetrics: [
-        { metric: 'Schools Transformed', value: '50', description: 'Number of schools completely renovated and modernized' },
-        { metric: 'Students Benefited', value: '8,500', description: 'Total students directly impacted by the program' },
-        { metric: 'Learning Improvement', value: '45%', description: 'Average improvement in student test scores' },
-        { metric: 'Teacher Satisfaction', value: '92%', description: 'Teachers reporting increased job satisfaction' }
-      ]
-    },
-    {
-      id: '3',
-      title: 'Clean Water Access Initiative',
-      slug: 'clean-water-access-initiative',
-      category: 'infrastructure',
-      status: 'completed',
-      startDate: '2023-03-01',
-      endDate: '2023-11-30',
-      location: 'Uttar Pradesh, Bihar',
-      description: 'Large-scale water infrastructure project providing clean drinking water access and sanitation facilities to rural communities.',
-      shortDescription: 'Water purification and sanitation project serving 15,000 people across 25 villages.',
-      totalBudget: '₹45,00,000',
-      fundsRaised: '₹45,00,000',
-      beneficiaries: 15000,
-      duration: '9 months',
-      objectives: [
-        'Install water purification systems in 25 villages',
-        'Build 50 community toilets with proper sanitation',
-        'Train 100 community members in water system maintenance',
-        'Reduce waterborne diseases by 80%',
-        'Establish sustainable water management practices'
-      ],
-      keyAchievements: [
-        '25 community water purification systems installed',
-        '55 community toilets constructed',
-        '120 community members trained as maintenance operators',
-        '85% reduction in waterborne disease cases',
-        '100% villages achieved ODF (Open Defecation Free) status'
-      ],
-      challenges: [
-        'Seasonal water table fluctuations',
-        'Initial community resistance to toilet usage',
-        'Technical training for maintenance staff',
-        'Ensuring long-term financial sustainability'
-      ],
-      lessons: [
-        'Community ownership is key to project sustainability',
-        'Regular maintenance training prevents system failures',
-        'Health education must accompany infrastructure development',
-        'Local materials reduce costs and improve acceptance'
-      ],
-      partners: [
-        'Water and Sanitation Department',
-        'Sulabh International',
-        'Village Development Committees',
-        'WHO India Office'
-      ],
-      team: [
-        'Prakash Singh - Water Engineer',
-        'Rekha Kumari - Community Mobilizer',
-        'Mohan Lal - Sanitation Specialist',
-        'Geeta Devi - Health Educator'
-      ],
-      images: [
-        '/assets/img/projects/water-initiative-1.jpg',
-        '/assets/img/projects/water-initiative-2.jpg',
-        '/assets/img/projects/water-initiative-3.jpg'
-      ],
-      documents: [
-        { name: 'Water Quality Test Reports', type: 'PDF', url: '/documents/water-quality-reports.pdf' },
-        { name: 'Community Training Manual', type: 'PDF', url: '/documents/water-training-manual.pdf' },
-        { name: 'Sustainability Plan', type: 'PDF', url: '/documents/water-sustainability-plan.pdf' }
-      ],
-      tags: ['water', 'sanitation', 'infrastructure', 'health', 'rural-development'],
-      impactMetrics: [
-        { metric: 'People Served', value: '15,000', description: 'Total population with access to clean water' },
-        { metric: 'Disease Reduction', value: '85%', description: 'Reduction in waterborne disease cases' },
-        { metric: 'Villages Covered', value: '25', description: 'Number of villages with complete water systems' },
-        { metric: 'System Uptime', value: '96%', description: 'Average operational efficiency of water systems' }
-      ]
-    },
-    {
-      id: '4',
-      title: 'Women Empowerment Through Skills',
-      slug: 'women-empowerment-through-skills',
-      category: 'social-welfare',
-      status: 'ongoing',
-      startDate: '2024-01-15',
-      endDate: '2024-12-31',
-      location: 'Urban Slums - Delhi, Mumbai',
-      description: 'Comprehensive skill development and entrepreneurship program for women in urban slum areas focusing on financial independence.',
-      shortDescription: 'Skill development program training 500 women in urban slums for entrepreneurship and employment.',
-      totalBudget: '₹18,00,000',
-      fundsRaised: '₹12,00,000',
-      beneficiaries: 500,
-      duration: '12 months',
-      objectives: [
-        'Train 500 women in marketable skills',
-        'Establish 50 micro-enterprises',
-        'Provide financial literacy education',
-        'Create women self-help groups',
-        'Achieve 80% employment rate post-training'
-      ],
-      keyAchievements: [
-        '320 women trained in various skills (in progress)',
-        '25 micro-enterprises established',
-        '15 self-help groups formed',
-        '₹2,50,000 collective savings generated',
-        '70% women showing increased confidence levels'
-      ],
-      challenges: [
-        'Balancing training with household responsibilities',
-        'Limited initial capital for starting businesses',
-        'Market linkage challenges for products',
-        'Social barriers to women working outside home'
-      ],
-      lessons: [
-        'Flexible training schedules improve participation',
-        'Peer support networks enhance success rates',
-        'Market research is crucial before skill selection',
-        'Family support significantly impacts success'
-      ],
-      partners: [
-        'National Skill Development Corporation',
-        'Women Self Help Federation',
-        'Local Microfinance Institutions',
-        'Urban Development Department'
-      ],
-      team: [
-        'Nisha Verma - Program Director',
-        'Deepa Kumari - Skills Trainer',
-        'Arjun Mehta - Business Mentor',
-        'Kavita Singh - Community Coordinator'
-      ],
-      images: [
-        '/assets/img/projects/women-empowerment-1.jpg',
-        '/assets/img/projects/women-empowerment-2.jpg'
-      ],
-      documents: [
-        { name: 'Interim Progress Report', type: 'PDF', url: '/documents/women-empowerment-interim.pdf' },
-        { name: 'Skills Training Curriculum', type: 'PDF', url: '/documents/skills-curriculum.pdf' }
-      ],
-      tags: ['women-empowerment', 'skills-development', 'entrepreneurship', 'urban-slums', 'microfinance'],
-      impactMetrics: [
-        { metric: 'Women Trained', value: '320/500', description: 'Progress towards training target' },
-        { metric: 'Businesses Started', value: '25', description: 'Number of micro-enterprises established' },
-        { metric: 'Average Income', value: '₹8,500', description: 'Monthly income increase per participant' },
-        { metric: 'Skill Retention', value: '88%', description: 'Participants still using learned skills' }
-      ]
-    },
-    {
-      id: '5',
-      title: 'Digital Health Network Pilot',
-      slug: 'digital-health-network-pilot',
-      category: 'healthcare',
-      status: 'archived',
-      startDate: '2021-09-01',
-      endDate: '2022-08-31',
-      location: 'Kerala, Karnataka',
-      description: 'Pilot project for establishing telemedicine and digital health record systems in rural primary health centers.',
-      shortDescription: 'Telemedicine pilot connecting 20 rural health centers with urban specialists.',
-      totalBudget: '₹15,00,000',
-      fundsRaised: '₹15,00,000',
-      beneficiaries: 3500,
-      duration: '12 months',
-      objectives: [
-        'Connect 20 rural health centers with telemedicine',
-        'Train 40 healthcare workers in digital systems',
-        'Digitize health records for 3000+ patients',
-        'Reduce specialist consultation wait times by 60%',
-        'Create scalable telemedicine model'
-      ],
-      keyAchievements: [
-        '20 health centers successfully connected',
-        '45 healthcare workers trained',
-        '3,200 patient records digitized',
-        '65% reduction in specialist consultation wait times',
-        'Telemedicine model adopted by state government'
-      ],
-      challenges: [
-        'Poor internet connectivity in remote areas',
-        'Resistance to technology adoption by older staff',
-        'Data privacy and security concerns',
-        'High initial setup and maintenance costs'
-      ],
-      lessons: [
-        'Reliable internet infrastructure is prerequisite',
-        'Gradual technology adoption works better than sudden changes',
-        'Data security training is essential',
-        'Government partnership ensures scalability'
-      ],
-      partners: [
-        'State Health Department',
-        'Indian Institute of Science',
-        'Telecommunications Provider',
-        'Medical Equipment Suppliers'
-      ],
-      team: [
-        'Dr. Sanjay Menon - Technical Director',
-        'Priya Nair - Training Coordinator',
-        'Ramesh Kumar - IT Specialist',
-        'Anitha Rao - Data Manager'
-      ],
-      images: [
-        '/assets/img/projects/digital-health-1.jpg',
-        '/assets/img/projects/digital-health-2.jpg'
-      ],
-      documents: [
-        { name: 'Pilot Evaluation Report', type: 'PDF', url: '/documents/digital-health-evaluation.pdf' },
-        { name: 'Scalability Framework', type: 'PDF', url: '/documents/telemedicine-framework.pdf' },
-        { name: 'Technical Documentation', type: 'PDF', url: '/documents/technical-docs.pdf' }
-      ],
-      tags: ['healthcare', 'telemedicine', 'digital-health', 'pilot-project', 'south-india'],
-      impactMetrics: [
-        { metric: 'Health Centers Connected', value: '20', description: 'Rural centers with telemedicine access' },
-        { metric: 'Consultation Reduction', value: '65%', description: 'Reduction in wait times for specialists' },
-        { metric: 'Records Digitized', value: '3,200', description: 'Patient health records converted to digital' },
-        { metric: 'Cost Savings', value: '40%', description: 'Reduction in patient travel and consultation costs' }
-      ]
-    },
-    {
-      id: '6',
-      title: 'Community Resilience Building',
-      slug: 'community-resilience-building',
-      category: 'community-development',
-      status: 'paused',
-      startDate: '2023-10-01',
-      endDate: '2025-03-31',
-      location: 'Assam, West Bengal',
-      description: 'Multi-faceted community development project focusing on disaster preparedness, livelihood diversification, and social cohesion in flood-prone areas.',
-      shortDescription: 'Disaster preparedness and livelihood program for flood-affected communities in Eastern India.',
-      totalBudget: '₹35,00,000',
-      fundsRaised: '₹20,00,000',
-      beneficiaries: 6000,
-      duration: '18 months',
-      objectives: [
-        'Train 200 community volunteers in disaster response',
-        'Establish early warning systems in 30 villages',
-        'Create alternative livelihood opportunities',
-        'Build 10 community disaster shelters',
-        'Develop community disaster management plans'
-      ],
-      keyAchievements: [
-        '120 volunteers trained in disaster response',
-        '15 early warning systems installed',
-        '5 community shelters constructed',
-        '25 alternative livelihood projects initiated',
-        '8 village disaster management committees formed'
-      ],
-      challenges: [
-        'Recurring floods disrupting project activities',
-        'Limited access during monsoon seasons',
-        'Coordination with multiple government agencies',
-        'Securing additional funding for completion'
-      ],
-      lessons: [
-        'Weather-dependent planning is crucial in flood-prone areas',
-        'Multi-agency coordination requires dedicated effort',
-        'Community leadership development takes time',
-        'Flexible project timelines are essential'
-      ],
-      partners: [
-        'Disaster Management Authority',
-        'Red Cross Society',
-        'Local Panchayati Raj Institutions',
-        'Meteorological Department'
-      ],
-      team: [
-        'Rajesh Das - Project Manager',
-        'Mamata Choudhury - Community Organizer',
-        'Bikash Sharma - Disaster Specialist',
-        'Ruma Begum - Livelihood Coordinator'
-      ],
-      images: [
-        '/assets/img/projects/resilience-building-1.jpg'
-      ],
-      documents: [
-        { name: 'Interim Assessment Report', type: 'PDF', url: '/documents/resilience-interim.pdf' },
-        { name: 'Disaster Preparedness Manual', type: 'PDF', url: '/documents/disaster-manual.pdf' }
-      ],
-      tags: ['disaster-preparedness', 'community-development', 'flood-management', 'livelihood', 'eastern-india'],
-      impactMetrics: [
-        { metric: 'Volunteers Trained', value: '120/200', description: 'Progress in training community volunteers' },
-        { metric: 'Warning Systems', value: '15/30', description: 'Early warning systems installed' },
-        { metric: 'Shelters Built', value: '5/10', description: 'Community disaster shelters completed' },
-        { metric: 'Funding Secured', value: '57%', description: 'Percentage of total budget raised' }
-      ]
-    }
-  ]
+  useEffect(() => {
+    const converted = convertProjects(initialProjects)
+    setProjects(converted)
+  }, [initialProjects])
+
+
 
   const categories = [
     { id: 'all', label: 'All Categories', icon: Target },
@@ -550,16 +189,7 @@ export default function Projects() {
     }
   }
 
-  const projectStats = {
-    total: projects.length,
-    completed: projects.filter(p => p.status === 'completed').length,
-    ongoing: projects.filter(p => p.status === 'ongoing').length,
-    totalBeneficiaries: projects.reduce((sum, p) => sum + p.beneficiaries, 0),
-    totalBudget: projects.reduce((sum, p) => {
-      const budget = parseFloat(p.totalBudget.replace(/[^\d]/g, ''))
-      return sum + budget
-    }, 0)
-  }
+  const projectStats = initialStats
 
   return (
     <>
@@ -879,4 +509,66 @@ export default function Projects() {
       </section>
     </>
   )
+}
+
+export const getServerSideProps: GetServerSideProps<ProjectsPageProps> = async () => {
+  try {
+    // Fetch projects and stats from API
+    const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000'
+
+    const [projectsResponse, statsResponse] = await Promise.all([
+      fetch(`${baseUrl}/api/projects`),
+      fetch(`${baseUrl}/api/projects?action=stats`)
+    ])
+
+    let projects = []
+    let stats = {
+      total: 0,
+      completed: 0,
+      ongoing: 0,
+      totalBeneficiaries: 0,
+      totalBudget: 0
+    }
+
+    if (projectsResponse.ok) {
+      const projectsData = await projectsResponse.json()
+      projects = projectsData.data?.projects || []
+    }
+
+    if (statsResponse.ok) {
+      const statsData = await statsResponse.json()
+      const dbStats = statsData.data || {}
+
+      stats = {
+        total: dbStats.publishedProjects || 0,
+        completed: dbStats.completedProjects || 0,
+        ongoing: dbStats.ongoingProjects || 0,
+        totalBeneficiaries: dbStats.totalBeneficiaries || 0,
+        totalBudget: dbStats.totalBudget || 0
+      }
+    }
+
+    return {
+      props: {
+        initialProjects: projects,
+        initialStats: stats
+      }
+    }
+  } catch (error) {
+    console.error('Error fetching projects data:', error)
+
+    // Return empty data on error
+    return {
+      props: {
+        initialProjects: [],
+        initialStats: {
+          total: 0,
+          completed: 0,
+          ongoing: 0,
+          totalBeneficiaries: 0,
+          totalBudget: 0
+        }
+      }
+    }
+  }
 }

@@ -1,29 +1,24 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
+import Link from 'next/link'
 import { GetServerSideProps } from 'next'
+import { getMembershipDonationStats } from '@/src/db/queries/membership-donation'
 import { getAllVolunteerRoles } from '@/src/db/queries/volunteer'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
+import { getActivitiesStats } from '@/src/db/queries/activities'
+import { getProjectsStats } from '@/src/db/queries/projects'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import AdminLayout from '@/components/layouts/AdminLayout'
 import {
   Users,
-  Plus,
-  Edit,
-  Trash2,
+  UserPlus,
+  Heart,
+  Crown,
   Settings,
-  AlertCircle,
-  CheckCircle,
-  Eye,
-  EyeOff,
-  ToggleLeft,
-  ToggleRight
+  TrendingUp,
+  ArrowUpRight,
+  Activity
 } from 'lucide-react'
-import { VolunteerRole } from '@/src/types/volunteer'
 
 interface AdminUser {
   id: number
@@ -32,48 +27,26 @@ interface AdminUser {
   role: string
 }
 
+interface DashboardStats {
+  totalMemberships: number
+  activeMemberships: number
+  totalDonations: number
+  pendingVerifications: number
+  totalAmount: number
+  totalProjects: number
+  totalActivities: number
+  totalVolunteerRoles: number
+  activeVolunteerRoles: number
+  totalVolunteers: number
+}
+
 interface AdminPageProps {
-  roles: VolunteerRole[]
+  stats: DashboardStats
   user: AdminUser | null
 }
 
-export default function AdminDashboard({ roles: initialRoles, user }: AdminPageProps) {
+export default function AdminDashboard({ stats, user }: AdminPageProps) {
   const router = useRouter()
-  const [roles, setRoles] = useState<VolunteerRole[]>(initialRoles)
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
-  const [editingRole, setEditingRole] = useState<VolunteerRole | null>(null)
-  const [showForm, setShowForm] = useState(false)
-
-  // Helper functions to safely parse JSON fields
-  const parseArray = (field: string[] | string): string[] => {
-    if (Array.isArray(field)) return field
-    if (typeof field === 'string') {
-      try {
-        const parsed = JSON.parse(field)
-        return Array.isArray(parsed) ? parsed : []
-      } catch {
-        return []
-      }
-    }
-    return []
-  }
-
-  const getSkillsNeeded = (role: VolunteerRole): string[] => parseArray(role.skillsNeeded)
-  const getRequirements = (role: VolunteerRole): string[] => parseArray(role.requirements)
-
-  // Form state
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    requirements: '',
-    skillsNeeded: '',
-    timeCommitment: '',
-    location: '',
-    isActive: true,
-    maxVolunteers: ''
-  })
 
   useEffect(() => {
     if (!user) {
@@ -81,143 +54,56 @@ export default function AdminDashboard({ roles: initialRoles, user }: AdminPageP
     }
   }, [user, router])
 
-  const resetForm = () => {
-    setFormData({
-      title: '',
-      description: '',
-      requirements: '',
-      skillsNeeded: '',
-      timeCommitment: '',
-      location: '',
-      isActive: true,
-      maxVolunteers: ''
-    })
-    setEditingRole(null)
-    setShowForm(false)
-  }
-
-  const loadRoleToEdit = (role: VolunteerRole) => {
-    setFormData({
-      title: role.title,
-      description: role.description,
-      requirements: getRequirements(role).join('\n'),
-      skillsNeeded: getSkillsNeeded(role).join('\n'),
-      timeCommitment: role.timeCommitment || '',
-      location: role.location || '',
-      isActive: role.isActive,
-      maxVolunteers: role.maxVolunteers?.toString() || ''
-    })
-    setEditingRole(role)
-    setShowForm(true)
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError('')
-    setSuccess('')
-
-    try {
-      const payload = {
-        title: formData.title,
-        description: formData.description,
-        requirements: formData.requirements.split('\n').filter(r => r.trim()),
-        skillsNeeded: formData.skillsNeeded.split('\n').filter(s => s.trim()),
-        timeCommitment: formData.timeCommitment || null,
-        location: formData.location || null,
-        isActive: formData.isActive,
-        maxVolunteers: formData.maxVolunteers ? parseInt(formData.maxVolunteers) : null
-      }
-
-      const url = editingRole
-        ? `/api/volunteer/roles`
-        : `/api/volunteer/roles`
-
-      const method = editingRole ? 'PUT' : 'POST'
-      const body = editingRole
-        ? { id: editingRole.id, ...payload }
-        : payload
-
-      const response = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      })
-
-      if (response.ok) {
-        setSuccess(editingRole ? 'Role updated successfully!' : 'Role created successfully!')
-        resetForm()
-        // Refresh roles
-        const rolesResponse = await fetch('/api/volunteer-roles')
-        if (rolesResponse.ok) {
-          const rolesResult = await rolesResponse.json()
-          setRoles(rolesResult.data || [])
-        }
-      } else {
-        const errorData = await response.json()
-        setError(errorData.error || 'Operation failed')
-      }
-    } catch (error) {
-      setError('Network error occurred')
-    } finally {
-      setIsLoading(false)
+  const navigationCards = [
+    {
+      title: 'Projects',
+      description: 'Manage foundation projects and initiatives',
+      href: '/admin/projects',
+      icon: TrendingUp,
+      stats: `${stats.totalProjects || 0} total projects`,
+      color: 'bg-indigo-500'
+    },
+    {
+      title: 'Activities',
+      description: 'Manage foundation activities and programs',
+      href: '/admin/activities',
+      icon: Activity,
+      stats: `${stats.totalActivities || 0} total activities`,
+      color: 'bg-orange-500'
+    },
+    {
+      title: 'Volunteer Roles',
+      description: 'Manage volunteer opportunities and roles',
+      href: '/admin/volunteer-roles',
+      icon: UserPlus,
+      stats: `${stats.activeVolunteerRoles} active roles`,
+      color: 'bg-blue-500'
+    },
+    {
+      title: 'Volunteers',
+      description: 'View and manage volunteer applications',
+      href: '/admin/volunteers',
+      icon: Users,
+      stats: `${stats.totalVolunteers} total volunteers`,
+      color: 'bg-green-500'
+    },
+    {
+      title: 'Members',
+      description: 'Manage membership applications and members',
+      href: '/admin/members',
+      icon: Crown,
+      stats: `${stats.activeMemberships} active members`,
+      color: 'bg-purple-500'
+    },
+    {
+      title: 'Donors',
+      description: 'View and manage donation records',
+      href: '/admin/donors',
+      icon: Heart,
+      stats: `${stats.totalDonations} donations`,
+      color: 'bg-red-500'
     }
-  }
-
-  const handleDelete = async (roleId: number) => {
-    if (!confirm('Are you sure you want to delete this role?')) return
-
-    setIsLoading(true)
-    try {
-      // For now, we'll deactivate instead of delete
-      const response = await fetch(`/api/volunteer/roles`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: roleId, isActive: false })
-      })
-
-      if (response.ok) {
-        setSuccess('Role deactivated successfully!')
-        setRoles(roles.map(role =>
-          role.id === roleId ? { ...role, isActive: false } : role
-        ))
-      } else {
-        setError('Failed to deactivate role')
-      }
-    } catch (error) {
-      setError('Network error occurred')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const toggleRoleStatus = async (roleId: number, currentStatus: boolean) => {
-    setIsLoading(true)
-    setError('')
-    setSuccess('')
-
-    try {
-      const response = await fetch(`/api/volunteer/roles`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: roleId, isActive: !currentStatus })
-      })
-
-      if (response.ok) {
-        const action = !currentStatus ? 'activated' : 'deactivated'
-        setSuccess(`Role ${action} successfully!`)
-        setRoles(roles.map(role =>
-          role.id === roleId ? { ...role, isActive: !currentStatus } : role
-        ))
-      } else {
-        setError('Failed to update role status')
-      }
-    } catch (error) {
-      setError('Network error occurred')
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  ]
 
   if (!user) {
     return <div>Loading...</div>
@@ -227,288 +113,128 @@ export default function AdminDashboard({ roles: initialRoles, user }: AdminPageP
     <AdminLayout user={user}>
       <Head>
         <title>Admin Dashboard - SARVAARTH & SEVAARTH FOUNDATION</title>
-        <meta name="description" content="Admin dashboard for managing volunteer programs" />
+        <meta name="description" content="Admin dashboard for managing the foundation" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Roles</CardTitle>
-                <Settings className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{roles.length}</div>
-              </CardContent>
-            </Card>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Header */}
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+          <p className="text-sm text-gray-600">Welcome back, {user.name}</p>
+        </div>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Active Roles</CardTitle>
-                <CheckCircle className="h-4 w-4 text-green-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{roles.filter(r => r.isActive).length}</div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Volunteers</CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {roles.reduce((sum, role) => sum + role.currentVolunteers, 0)}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Messages */}
-          {error && (
-            <div className="flex items-center gap-3 p-4 mb-6 bg-red-50 border border-red-200 rounded-lg">
-              <AlertCircle className="w-5 h-5 text-red-600" />
-              <p className="text-red-800">{error}</p>
-            </div>
-          )}
-
-          {success && (
-            <div className="flex items-center gap-3 p-4 mb-6 bg-green-50 border border-green-200 rounded-lg">
-              <CheckCircle className="w-5 h-5 text-green-600" />
-              <p className="text-green-800">{success}</p>
-            </div>
-          )}
-
-          {/* Action Button */}
-          <div className="mb-6">
-            <Button
-              onClick={() => setShowForm(!showForm)}
-              className="bg-ngo-blue hover:bg-ngo-blue-light"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              {showForm ? 'Cancel' : 'Add New Role'}
-            </Button>
-          </div>
-
-          {/* Form */}
-          {showForm && (
-            <Card className="mb-8">
-              <CardHeader>
-                <CardTitle>{editingRole ? 'Edit Role' : 'Create New Role'}</CardTitle>
-                <CardDescription>
-                  {editingRole ? 'Update the volunteer role details' : 'Add a new volunteer role to your organization'}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="title">Role Title *</Label>
-                      <Input
-                        id="title"
-                        value={formData.title}
-                        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                        placeholder="e.g., Medical Camp Volunteer"
-                        required
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="timeCommitment">Time Commitment</Label>
-                      <Input
-                        id="timeCommitment"
-                        value={formData.timeCommitment}
-                        onChange={(e) => setFormData({ ...formData, timeCommitment: e.target.value })}
-                        placeholder="e.g., Weekends (6-8 hours)"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="description">Description *</Label>
-                    <Textarea
-                      id="description"
-                      value={formData.description}
-                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      placeholder="Describe the role and responsibilities..."
-                      rows={3}
-                      required
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="requirements">Requirements (one per line)</Label>
-                      <Textarea
-                        id="requirements"
-                        value={formData.requirements}
-                        onChange={(e) => setFormData({ ...formData, requirements: e.target.value })}
-                        placeholder="Available on weekends&#10;Good communication skills&#10;Willingness to travel"
-                        rows={4}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="skillsNeeded">Skills Needed (one per line)</Label>
-                      <Textarea
-                        id="skillsNeeded"
-                        value={formData.skillsNeeded}
-                        onChange={(e) => setFormData({ ...formData, skillsNeeded: e.target.value })}
-                        placeholder="Healthcare background&#10;Basic first aid&#10;Local language skills"
-                        rows={4}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="location">Location</Label>
-                      <Input
-                        id="location"
-                        value={formData.location}
-                        onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                        placeholder="e.g., Remote, On-site, Various"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="maxVolunteers">Max Volunteers</Label>
-                      <Input
-                        id="maxVolunteers"
-                        type="number"
-                        value={formData.maxVolunteers}
-                        onChange={(e) => setFormData({ ...formData, maxVolunteers: e.target.value })}
-                        placeholder="Leave empty for unlimited"
-                        min="1"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="isActive">Status</Label>
-                      <Select
-                        value={formData.isActive.toString()}
-                        onValueChange={(value) => setFormData({ ...formData, isActive: value === 'true' })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="true">Active</SelectItem>
-                          <SelectItem value="false">Inactive</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-4">
-                    <Button type="submit" disabled={isLoading}>
-                      {isLoading ? 'Saving...' : (editingRole ? 'Update Role' : 'Create Role')}
-                    </Button>
-                    <Button type="button" variant="outline" onClick={resetForm}>
-                      Cancel
-                    </Button>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Roles List */}
+        {/* Quick Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <Card>
-            <CardHeader>
-              <CardTitle>Volunteer Roles</CardTitle>
-              <CardDescription>Manage all volunteer roles in your organization</CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+              <CardTitle className="text-xs font-medium">Total Raised</CardTitle>
+              <TrendingUp className="h-3 w-3 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {roles.map((role) => (
-                  <div key={role.id} className={`border rounded-lg p-4 hover:bg-gray-50 transition-all ${
-                    !role.isActive ? 'bg-gray-50 border-gray-300 opacity-75' : 'bg-white border-gray-200'
-                  }`}>
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <h3 className="font-semibold text-lg">{role.title}</h3>
-                          <span className={`px-2 py-1 text-xs rounded-full ${
-                            role.isActive
-                              ? 'bg-green-100 text-green-700'
-                              : 'bg-gray-100 text-gray-700'
-                          }`}>
-                            {role.isActive ? (
-                              <>
-                                <Eye className="w-3 h-3 inline mr-1" />
-                                Active
-                              </>
-                            ) : (
-                              <>
-                                <EyeOff className="w-3 h-3 inline mr-1" />
-                                Inactive
-                              </>
-                            )}
-                          </span>
-                          {role.maxVolunteers && (
-                            <span className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded-full">
-                              {role.currentVolunteers}/{role.maxVolunteers} volunteers
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-gray-600 mb-2">{role.description}</p>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-500">
-                          <div>
-                            <strong>Time:</strong> {role.timeCommitment || 'Not specified'}
-                          </div>
-                          <div>
-                            <strong>Location:</strong> {role.location || 'Not specified'}
-                          </div>
-                          {getSkillsNeeded(role).length > 0 && (
-                            <div className="md:col-span-2">
-                              <strong>Skills:</strong> {getSkillsNeeded(role).join(', ')}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => toggleRoleStatus(role.id, role.isActive)}
-                          className={role.isActive ? "text-orange-600 hover:text-orange-700" : "text-green-600 hover:text-green-700"}
-                          title={role.isActive ? "Deactivate role" : "Activate role"}
-                        >
-                          {role.isActive ? <ToggleRight className="w-4 h-4" /> : <ToggleLeft className="w-4 h-4" />}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => loadRoleToEdit(role)}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDelete(role.id)}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+            <CardContent className="pt-1">
+              <div className="text-lg font-bold">₹{stats.totalAmount?.toLocaleString('en-IN') || '0'}</div>
+              <p className="text-xs text-muted-foreground">From all sources</p>
+            </CardContent>
+          </Card>
 
-                {roles.length === 0 && (
-                  <div className="text-center py-8 text-gray-500">
-                    No volunteer roles found. Create your first role to get started.
-                  </div>
-                )}
-              </div>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+              <CardTitle className="text-xs font-medium">Members</CardTitle>
+              <Crown className="h-3 w-3 text-purple-600" />
+            </CardHeader>
+            <CardContent className="pt-1">
+              <div className="text-lg font-bold">{stats.activeMemberships}</div>
+              <p className="text-xs text-muted-foreground">of {stats.totalMemberships} total</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+              <CardTitle className="text-xs font-medium">Donations</CardTitle>
+              <Heart className="h-3 w-3 text-red-600" />
+            </CardHeader>
+            <CardContent className="pt-1">
+              <div className="text-lg font-bold">{stats.totalDonations}</div>
+              <p className="text-xs text-muted-foreground">Individual donations</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+              <CardTitle className="text-xs font-medium">Pending</CardTitle>
+              <Activity className="h-3 w-3 text-orange-600" />
+            </CardHeader>
+            <CardContent className="pt-1">
+              <div className="text-lg font-bold">{stats.pendingVerifications}</div>
+              <p className="text-xs text-muted-foreground">Need review</p>
             </CardContent>
           </Card>
         </div>
+
+        {/* Navigation Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {navigationCards.map((card) => {
+            const IconComponent = card.icon
+            return (
+              <Link key={card.title} href={card.href}>
+                <Card className="hover:shadow-md transition-all duration-200 cursor-pointer transform hover:-translate-y-1 border-0 shadow-sm">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className={`w-8 h-8 rounded-lg ${card.color} flex items-center justify-center`}>
+                        <IconComponent className="w-4 h-4 text-white" />
+                      </div>
+                      <ArrowUpRight className="w-3 h-3 text-gray-400" />
+                    </div>
+                    <h3 className="font-semibold text-base text-gray-900 mb-1">{card.title}</h3>
+                    <p className="text-xs text-gray-600 mb-2">{card.description}</p>
+                    <div className="text-xs font-medium text-gray-800">{card.stats}</div>
+                  </CardContent>
+                </Card>
+              </Link>
+            )
+          })}
+        </div>
+
+        {/* Recent Activity Section */}
+        <Card className="mt-6">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Recent Activity</CardTitle>
+            <CardDescription className="text-sm">Latest updates across your foundation</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="space-y-3">
+                            {stats.pendingVerifications > 0 && (
+                <div className="flex items-center gap-2 p-2 bg-orange-50 border border-orange-200 rounded-md">
+                  <Activity className="w-4 h-4 text-orange-600 flex-shrink-0" />
+                  <div>
+                    <p className="text-xs font-medium text-orange-800">
+                      {stats.pendingVerifications} payment{stats.pendingVerifications !== 1 ? 's' : ''} awaiting verification
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex items-center gap-2 p-2 bg-blue-50 border border-blue-200 rounded-md">
+                <Users className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                <div>
+                  <p className="text-xs font-medium text-blue-800">
+                    {stats.totalVolunteers} volunteer{stats.totalVolunteers !== 1 ? 's' : ''} across {stats.activeVolunteerRoles} active roles
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 p-2 bg-green-50 border border-green-200 rounded-md">
+                <TrendingUp className="w-4 h-4 text-green-600 flex-shrink-0" />
+                <div>
+                  <p className="text-xs font-medium text-green-800">
+                    Foundation raised ₹{stats.totalAmount?.toLocaleString('en-IN') || '0'} from {stats.totalMemberships + stats.totalDonations} contributions
+                  </p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </AdminLayout>
   )
 }
@@ -545,21 +271,31 @@ export const getServerSideProps: GetServerSideProps<AdminPageProps> = async ({ r
       }
     }
 
-    // Fetch roles directly from database
-    const rolesData = await getAllVolunteerRoles(false) // Get all roles, both active and inactive
+    // Fetch dashboard statistics
+    const [membershipDonationStats, rolesData, activitiesStats, projectsStats] = await Promise.all([
+      getMembershipDonationStats(),
+      getAllVolunteerRoles(false), // Get all roles, both active and inactive
+      getActivitiesStats(),
+      getProjectsStats()
+    ])
 
-    // Process the roles the same way the API does
-    const roles: VolunteerRole[] = rolesData.map(role => ({
-      ...role,
-      requirements: role.requirements ? JSON.parse(role.requirements) : [],
-      skillsNeeded: role.skillsNeeded ? JSON.parse(role.skillsNeeded) : [],
-      createdAt: role.createdAt,
-      updatedAt: role.updatedAt ? role.updatedAt.toISOString() : null,
-    }))
+    // Calculate volunteer stats
+    const totalVolunteerRoles = rolesData.length
+    const activeVolunteerRoles = rolesData.filter(role => role.isActive).length
+    const totalVolunteers = rolesData.reduce((sum, role) => sum + role.currentVolunteers, 0)
+
+    const stats: DashboardStats = {
+      ...membershipDonationStats,
+      totalVolunteerRoles,
+      activeVolunteerRoles,
+      totalVolunteers,
+      totalActivities: activitiesStats.totalActivities,
+      totalProjects: projectsStats.totalProjects
+    }
 
     return {
       props: {
-        roles,
+        stats,
         user,
       },
     }
