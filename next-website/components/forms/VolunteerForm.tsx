@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Loader2, CheckCircle, AlertCircle, User, Mail, MapPin, CreditCard, FileText, Briefcase } from 'lucide-react'
+import { Loader2, CheckCircle, AlertCircle, User, Mail, MapPin, CreditCard, FileText, Briefcase, Phone } from 'lucide-react'
 
 // Validation schema
 const volunteerSchema = z.object({
@@ -23,19 +23,25 @@ const volunteerSchema = z.object({
   address: z.string()
     .min(10, 'Please provide complete postal address')
     .max(500, 'Address must be less than 500 characters'),
-  panNumber: z.string()
-    .min(1, 'PAN number is required')
-    .regex(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, 'Please enter a valid PAN number (e.g., ABCDE1234F)')
-    .transform(val => val.toUpperCase()),
+  phoneNumber: z.string()
+    .min(10, 'Phone number must be at least 10 digits')
+    .regex(/^[0-9+\-\s()]+$/, 'Please enter a valid phone number'),
   aadhaarNumber: z.string()
     .min(1, 'Aadhaar number is required')
     .regex(/^[0-9]{12}$/, 'Aadhaar number must be exactly 12 digits'),
+  panNumber: z.string()
+    .optional()
+    .refine((val) => !val || /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(val), {
+      message: 'PAN number must be in format ABCDE1234F'
+    }),
   occupation: z.string()
     .min(2, 'Please specify your occupation')
     .max(100, 'Occupation must be less than 100 characters'),
   professionalDetails: z.string()
     .min(20, 'Please provide at least 20 characters describing your professional contribution')
-    .max(1000, 'Description must be less than 1000 characters')
+    .max(1000, 'Description must be less than 1000 characters'),
+  appliedRoleId: z.string()
+    .optional()
 })
 
 type VolunteerFormData = z.infer<typeof volunteerSchema>
@@ -48,11 +54,25 @@ const salutations = [
   { value: 'Prof.', label: 'Prof.' }
 ]
 
-interface VolunteerFormProps {
-  onSuccess?: () => void
+interface VolunteerRole {
+  id: number
+  title: string
+  description: string
+  requirements: string[]
+  skillsNeeded: string[]
+  timeCommitment: string
+  location: string
+  isActive: boolean
+  maxVolunteers: number | null
+  currentVolunteers: number
 }
 
-export default function VolunteerForm({ onSuccess }: VolunteerFormProps) {
+interface VolunteerFormProps {
+  onSuccess?: () => void
+  availableRoles?: VolunteerRole[]
+}
+
+export default function VolunteerForm({ onSuccess, availableRoles }: VolunteerFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
   const [submitMessage, setSubmitMessage] = useState('')
@@ -76,12 +96,20 @@ export default function VolunteerForm({ onSuccess }: VolunteerFormProps) {
     setSubmitStatus('idle')
 
     try {
+      // Convert appliedRoleId to number if provided, handle "general" as undefined
+      const submissionData = {
+        ...data,
+        appliedRoleId: data.appliedRoleId && data.appliedRoleId !== '' && data.appliedRoleId !== 'general'
+          ? parseInt(data.appliedRoleId)
+          : undefined
+      }
+
       const response = await fetch('/api/volunteer', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(submissionData),
       })
 
       if (!response.ok) {
@@ -160,6 +188,38 @@ export default function VolunteerForm({ onSuccess }: VolunteerFormProps) {
             )}
           </div>
 
+          {/* Role Selection */}
+          {availableRoles && availableRoles.length > 0 && (
+            <div className="space-y-2">
+              <Label htmlFor="appliedRoleId" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                <Briefcase className="w-4 h-4" />
+                Preferred Volunteer Role
+              </Label>
+              <Select onValueChange={(value) => setValue('appliedRoleId', value, { shouldValidate: true })}>
+                <SelectTrigger className={`${errors.appliedRoleId ? 'border-red-500' : 'border-gray-300'}`}>
+                  <SelectValue placeholder="Select a specific role (optional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="general">General Volunteer</SelectItem>
+                  {availableRoles.map((role) => (
+                    <SelectItem key={role.id} value={role.id.toString()}>
+                      <div className="flex flex-col">
+                        <span className="font-medium">{role.title}</span>
+                        <span className="text-xs text-gray-500">{role.timeCommitment} • {role.location}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-gray-500">
+                Choose a specific role if you have particular interests or leave as general volunteer
+              </p>
+              {errors.appliedRoleId && (
+                <p className="text-sm text-red-600">{errors.appliedRoleId.message}</p>
+              )}
+            </div>
+          )}
+
           {/* Salutation and Full Name Row */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
@@ -206,7 +266,7 @@ export default function VolunteerForm({ onSuccess }: VolunteerFormProps) {
           <div className="space-y-2">
             <Label htmlFor="address" className="text-sm font-medium text-gray-700 flex items-center gap-2">
               <MapPin className="w-4 h-4" />
-              Address
+              Address <span className="text-red-500">*</span>
             </Label>
             <Textarea
               id="address"
@@ -220,31 +280,26 @@ export default function VolunteerForm({ onSuccess }: VolunteerFormProps) {
             )}
           </div>
 
-          {/* PAN and Aadhaar Row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="panNumber" className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                <CreditCard className="w-4 h-4" />
-                PAN Number <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="panNumber"
-                type="text"
-                placeholder="ABCDE1234F"
-                {...register('panNumber')}
-                onChange={(e) => {
-                  const formatted = formatPanNumber(e.target.value)
-                  setValue('panNumber', formatted, { shouldValidate: true })
-                }}
-                className={`${errors.panNumber ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-ngo-blue'} transition-colors uppercase`}
-                maxLength={10}
-              />
-              <p className="text-xs text-gray-500">For donation receipt and tax purposes</p>
-              {errors.panNumber && (
-                <p className="text-sm text-red-600">{errors.panNumber.message}</p>
-              )}
-            </div>
+          {/* Phone Number */}
+          <div className="space-y-2">
+            <Label htmlFor="phoneNumber" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+              <Phone className="w-4 h-4" />
+              Phone Number <span className="text-red-500">*</span>
+            </Label>
+            <Input
+              id="phoneNumber"
+              type="tel"
+              placeholder="+91 98765 43210"
+              {...register('phoneNumber')}
+              className={`${errors.phoneNumber ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-ngo-blue'} transition-colors`}
+            />
+            {errors.phoneNumber && (
+              <p className="text-sm text-red-600">{errors.phoneNumber.message}</p>
+            )}
+          </div>
 
+          {/* Aadhaar and PAN Row */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="aadhaarNumber" className="text-sm font-medium text-gray-700 flex items-center gap-2">
                 <FileText className="w-4 h-4" />
@@ -262,9 +317,32 @@ export default function VolunteerForm({ onSuccess }: VolunteerFormProps) {
                 className={`${errors.aadhaarNumber ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-ngo-blue'} transition-colors`}
                 maxLength={12}
               />
-              <p className="text-xs text-gray-500">For identity verification and tax receipts</p>
+              <p className="text-xs text-gray-500">For identity verification</p>
               {errors.aadhaarNumber && (
                 <p className="text-sm text-red-600">{errors.aadhaarNumber.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="panNumber" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                <CreditCard className="w-4 h-4" />
+                PAN Number
+              </Label>
+              <Input
+                id="panNumber"
+                type="text"
+                placeholder="ABCDE1234F"
+                {...register('panNumber')}
+                onChange={(e) => {
+                  const formatted = formatPanNumber(e.target.value)
+                  setValue('panNumber', formatted, { shouldValidate: true })
+                }}
+                className={`${errors.panNumber ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-ngo-blue'} transition-colors`}
+                maxLength={10}
+              />
+              <p className="text-xs text-gray-500">Optional - for tax receipts</p>
+              {errors.panNumber && (
+                <p className="text-sm text-red-600">{errors.panNumber.message}</p>
               )}
             </div>
           </div>
@@ -273,7 +351,7 @@ export default function VolunteerForm({ onSuccess }: VolunteerFormProps) {
           <div className="space-y-2">
             <Label htmlFor="occupation" className="text-sm font-medium text-gray-700 flex items-center gap-2">
               <Briefcase className="w-4 h-4" />
-              Occupation/Profession
+              Occupation/Profession <span className="text-red-500">*</span>
             </Label>
             <Input
               id="occupation"
@@ -290,7 +368,7 @@ export default function VolunteerForm({ onSuccess }: VolunteerFormProps) {
           {/* Professional Details */}
           <div className="space-y-2">
             <Label htmlFor="professionalDetails" className="text-sm font-medium text-gray-700">
-              Brief Details about your Profession and Social Contribution
+              Brief Details about your Profession and Social Contribution <span className="text-red-500">*</span>
             </Label>
             <Textarea
               id="professionalDetails"
@@ -329,9 +407,9 @@ export default function VolunteerForm({ onSuccess }: VolunteerFormProps) {
         {/* Privacy Notice */}
         <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
           <p className="text-sm text-blue-800">
-            <strong>Privacy Notice:</strong> Your personal information is secure with us. We use PAN and Aadhaar
-            numbers only for tax receipt purposes and identity verification. All data is protected according to
-            applicable privacy laws.
+            <strong>Privacy Notice:</strong> Your personal information is secure with us. We use Aadhaar and PAN
+            numbers only for identity verification and tax receipt purposes. Your phone number helps us stay in touch
+            about volunteer opportunities. All data is protected according to applicable privacy laws.
           </p>
         </div>
       </CardContent>

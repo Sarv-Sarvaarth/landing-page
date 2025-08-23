@@ -78,3 +78,8 @@ const { isEnabled } = await draftMode()
 // Handle async params in layouts/pages
 const params = await props.params
 const searchParams = await props.searchParams
+
+## Important Things to Remember
+
+- Never make a markdown file after completing a task without me specifically asking you to do so
+- No need to build anything extra for the task, only build what is explicitly asked for

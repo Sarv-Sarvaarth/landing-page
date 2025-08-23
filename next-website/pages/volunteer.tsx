@@ -1,12 +1,30 @@
 import Head from 'next/head'
 import Image from 'next/image'
 import Link from 'next/link'
+import { GetServerSideProps } from 'next'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import VolunteerForm from '@/components/forms/VolunteerForm'
 import { Heart, Users, HandHeart, Globe, Award, ArrowRight, CheckCircle, Star } from 'lucide-react'
 
-export default function Volunteer() {
+interface VolunteerRole {
+  id: number
+  title: string
+  description: string
+  requirements: string[]
+  skillsNeeded: string[]
+  timeCommitment: string
+  location: string
+  isActive: boolean
+  maxVolunteers: number | null
+  currentVolunteers: number
+}
+
+interface VolunteerPageProps {
+  volunteerRoles: VolunteerRole[]
+}
+
+export default function Volunteer({ volunteerRoles }: VolunteerPageProps) {
   const handleFormSuccess = () => {
     // Could add additional success handling here
     console.log('Volunteer form submitted successfully!')
@@ -35,30 +53,19 @@ export default function Volunteer() {
     }
   ]
 
-  const volunteerOpportunities = [
+  // Use roles from database, fallback to static data if no roles available
+  const displayRoles = volunteerRoles && volunteerRoles.length > 0 ? volunteerRoles : [
     {
-      title: 'Medical Camp Volunteers',
-      description: 'Assist in organizing and conducting free medical camps',
-      commitment: 'Weekends',
-      skills: 'Healthcare background preferred'
-    },
-    {
-      title: 'Education Support',
-      description: 'Help with teaching and educational program development',
-      commitment: 'Flexible',
-      skills: 'Teaching or educational background'
-    },
-    {
-      title: 'Event Coordination',
-      description: 'Support fundraising events and awareness campaigns',
-      commitment: '10-15 hours/month',
-      skills: 'Organization and communication skills'
-    },
-    {
-      title: 'Digital Marketing',
-      description: 'Help with social media and online outreach',
-      commitment: 'Remote',
-      skills: 'Digital marketing experience'
+      id: 0,
+      title: 'General Volunteer',
+      description: 'Help us with various activities and programs',
+      requirements: [],
+      skillsNeeded: [],
+      timeCommitment: 'Flexible',
+      location: 'Various',
+      isActive: true,
+      maxVolunteers: null,
+      currentVolunteers: 0
     }
   ]
 
@@ -126,7 +133,7 @@ export default function Volunteer() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
             {/* Left Side - Form */}
             <div className="order-2 lg:order-1">
-              <VolunteerForm onSuccess={handleFormSuccess} />
+              <VolunteerForm onSuccess={handleFormSuccess} availableRoles={volunteerRoles} />
             </div>
 
             {/* Right Side - Image and Information */}
@@ -199,20 +206,37 @@ export default function Volunteer() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {volunteerOpportunities.map((opportunity, index) => (
-              <Card key={index} className="hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border-l-4 border-ngo-blue">
+            {displayRoles.map((role) => (
+              <Card key={role.id} className="hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border-l-4 border-ngo-blue">
                 <CardContent className="p-6">
-                  <h3 className="text-xl font-semibold text-ngo-blue mb-3">{opportunity.title}</h3>
-                  <p className="text-gray-600 mb-4">{opportunity.description}</p>
+                  <div className="flex justify-between items-start mb-3">
+                    <h3 className="text-xl font-semibold text-ngo-blue">{role.title}</h3>
+                    {role.maxVolunteers && (
+                      <span className="text-xs bg-ngo-blue text-white px-2 py-1 rounded">
+                        {role.currentVolunteers}/{role.maxVolunteers}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-gray-600 mb-4">{role.description}</p>
                   <div className="space-y-2">
-                    <div className="flex items-center text-sm">
-                      <span className="font-medium text-gray-700 w-24">Commitment:</span>
-                      <span className="text-gray-600">{opportunity.commitment}</span>
-                    </div>
-                    <div className="flex items-center text-sm">
-                      <span className="font-medium text-gray-700 w-24">Skills:</span>
-                      <span className="text-gray-600">{opportunity.skills}</span>
-                    </div>
+                    {role.timeCommitment && (
+                      <div className="flex items-center text-sm">
+                        <span className="font-medium text-gray-700 w-24">Commitment:</span>
+                        <span className="text-gray-600">{role.timeCommitment}</span>
+                      </div>
+                    )}
+                    {role.location && (
+                      <div className="flex items-center text-sm">
+                        <span className="font-medium text-gray-700 w-24">Location:</span>
+                        <span className="text-gray-600">{role.location}</span>
+                      </div>
+                    )}
+                    {role.skillsNeeded && role.skillsNeeded.length > 0 && (
+                      <div className="flex items-start text-sm">
+                        <span className="font-medium text-gray-700 w-24">Skills:</span>
+                        <span className="text-gray-600">{role.skillsNeeded.join(', ')}</span>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -306,4 +330,37 @@ export default function Volunteer() {
       </section>
     </>
   )
+}
+
+export const getServerSideProps: GetServerSideProps<VolunteerPageProps> = async () => {
+  try {
+    // Fetch volunteer roles from the API
+    const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http'
+    const host = process.env.VERCEL_URL || 'localhost:3000'
+    const response = await fetch(`${protocol}://${host}/api/volunteer-roles`)
+
+    let volunteerRoles: VolunteerRole[] = []
+
+    if (response.ok) {
+      const result = await response.json()
+      if (result.success) {
+        volunteerRoles = result.data || []
+      }
+    }
+
+    return {
+      props: {
+        volunteerRoles,
+      },
+    }
+  } catch (error) {
+    console.error('Error fetching volunteer roles:', error)
+
+    // Return empty array on error - component will show fallback
+    return {
+      props: {
+        volunteerRoles: [],
+      },
+    }
+  }
 }

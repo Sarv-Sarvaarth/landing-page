@@ -1,14 +1,20 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
+import { createVolunteer, getVolunteerByEmail } from '@/src/db/queries/volunteer'
 
 interface VolunteerData {
   email: string
   salutation: string
   fullName: string
   address: string
-  panNumber: string
+  phoneNumber: string
   aadhaarNumber: string
+  panNumber?: string
   occupation: string
   professionalDetails: string
+  appliedRoleId?: number
+  skills?: string[]
+  availability?: string[]
+  preferredRoles?: string[]
 }
 
 interface ApiResponse {
@@ -36,9 +42,14 @@ const validateVolunteerData = (data: any): { isValid: boolean; errors: string[] 
     errors.push('Complete address is required')
   }
 
-  // PAN validation
-  if (!data.panNumber || !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(data.panNumber)) {
-    errors.push('Valid PAN number is required (format: ABCDE1234F)')
+  // Phone number validation
+  if (!data.phoneNumber || data.phoneNumber.length < 10) {
+    errors.push('Valid phone number is required')
+  }
+
+  // PAN validation (optional)
+  if (data.panNumber && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(data.panNumber)) {
+    errors.push('Valid PAN number format required (ABCDE1234F)')
   }
 
   // Aadhaar validation
@@ -62,7 +73,7 @@ const validateVolunteerData = (data: any): { isValid: boolean; errors: string[] 
   }
 }
 
-export default function handler(
+export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ApiResponse>
 ) {
@@ -88,7 +99,7 @@ export default function handler(
 
     // Validate the data
     const validation = validateVolunteerData(volunteerData)
-    
+
     if (!validation.isValid) {
       console.log('Validation errors:', validation.errors)
       return res.status(400).json({
@@ -98,56 +109,83 @@ export default function handler(
       })
     }
 
-    // Create volunteer record object (for now just structure the data)
+    // Check if volunteer already exists
+    const existingVolunteer = await getVolunteerByEmail(volunteerData.email)
+    if (existingVolunteer) {
+      return res.status(409).json({
+        success: false,
+        message: 'Email already registered',
+        error: 'A volunteer with this email address already exists. Please use a different email or contact us if you need to update your information.'
+      })
+    }
+
+    // Prepare data for database insertion
     const volunteerRecord = {
-      id: `VOL_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       email: volunteerData.email,
       salutation: volunteerData.salutation,
       fullName: volunteerData.fullName,
       address: volunteerData.address,
-      panNumber: volunteerData.panNumber,
-      aadhaarNumber: volunteerData.aadhaarNumber.replace(/(\d{4})(\d{4})(\d{4})/, '****-****-$3'), // Mask for logging
+      phoneNumber: volunteerData.phoneNumber,
+      aadhaarNumber: volunteerData.aadhaarNumber, // Note: Should be encrypted in production
+      panNumber: volunteerData.panNumber || null,
       occupation: volunteerData.occupation,
       professionalDetails: volunteerData.professionalDetails,
-      registrationDate: new Date().toISOString(),
-      status: 'pending_review'
+      appliedRoleId: volunteerData.appliedRoleId || null,
+      skills: volunteerData.skills ? JSON.stringify(volunteerData.skills) : null,
+      availability: volunteerData.availability ? JSON.stringify(volunteerData.availability) : null,
+      preferredRoles: volunteerData.preferredRoles ? JSON.stringify(volunteerData.preferredRoles) : null,
+      status: 'pending_review' as const,
     }
 
-    // Log the structured record (with masked sensitive data)
-    console.log('Volunteer registration processed successfully:', {
-      id: volunteerRecord.id,
-      email: volunteerRecord.email,
-      fullName: volunteerRecord.fullName,
-      occupation: volunteerRecord.occupation,
-      status: volunteerRecord.status,
-      registrationDate: volunteerRecord.registrationDate
+    // Save to database
+    const savedVolunteer = await createVolunteer(volunteerRecord)
+
+    // Log the successful registration (with masked sensitive data)
+    console.log('Volunteer registration saved to database:', {
+      id: savedVolunteer.id,
+      email: savedVolunteer.email,
+      fullName: savedVolunteer.fullName,
+      occupation: savedVolunteer.occupation,
+      status: savedVolunteer.status,
+      applicationDate: savedVolunteer.applicationDate,
+      appliedRoleId: savedVolunteer.appliedRoleId
     })
 
-    // TODO: In the future, save to database
-    // Example: await saveVolunteerToDatabase(volunteerRecord)
-
     // TODO: Send confirmation email
-    // Example: await sendConfirmationEmail(volunteerData.email, volunteerRecord.id)
+    // Example: await sendConfirmationEmail(volunteerData.email, savedVolunteer.id)
 
     // TODO: Notify admin team
-    // Example: await notifyAdminTeam(volunteerRecord)
+    // Example: await notifyAdminTeam(savedVolunteer)
 
     // Return success response
-    return res.status(200).json({
+    return res.status(201).json({
       success: true,
       message: 'Volunteer registration submitted successfully! We will review your application and contact you soon.',
       data: {
-        registrationId: volunteerRecord.id,
-        email: volunteerRecord.email,
-        fullName: volunteerRecord.fullName,
-        status: volunteerRecord.status,
-        submittedAt: volunteerRecord.registrationDate
+        registrationId: savedVolunteer.id,
+        email: savedVolunteer.email,
+        fullName: savedVolunteer.fullName,
+        status: savedVolunteer.status,
+        submittedAt: savedVolunteer.applicationDate,
+        appliedRoleId: savedVolunteer.appliedRoleId
       }
     })
 
   } catch (error) {
     console.error('Error processing volunteer registration:', error)
-    
+
+    // Check if it's a database constraint error
+    if (error && typeof error === 'object' && 'message' in error) {
+      const errorMessage = (error as Error).message
+      if (errorMessage.includes('UNIQUE constraint failed')) {
+        return res.status(409).json({
+          success: false,
+          message: 'Duplicate registration',
+          error: 'This email address is already registered. Please use a different email.'
+        })
+      }
+    }
+
     return res.status(500).json({
       success: false,
       message: 'Internal server error',
