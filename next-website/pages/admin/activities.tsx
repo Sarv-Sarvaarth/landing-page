@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
 import Link from 'next/link'
@@ -116,10 +116,6 @@ export default function ActivitiesPage({ user }: ActivitiesPageProps) {
     }
   }, [user, router])
 
-  useEffect(() => {
-    filterActivities()
-  }, [activities, searchTerm, categoryFilter, statusFilter, publishedFilter])
-
   const fetchActivities = async () => {
     try {
       setIsLoading(true)
@@ -137,7 +133,7 @@ export default function ActivitiesPage({ user }: ActivitiesPageProps) {
     }
   }
 
-  const filterActivities = () => {
+  const filterActivities = useCallback(() => {
     let filtered = activities
 
     if (searchTerm) {
@@ -165,7 +161,11 @@ export default function ActivitiesPage({ user }: ActivitiesPageProps) {
     }
 
     setFilteredActivities(filtered)
-  }
+  }, [activities, searchTerm, categoryFilter, statusFilter, publishedFilter])
+
+  useEffect(() => {
+    filterActivities()
+  }, [activities, searchTerm, categoryFilter, statusFilter, publishedFilter, filterActivities])
 
   const resetForm = () => {
     setFormData({

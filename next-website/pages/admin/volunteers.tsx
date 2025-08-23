@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
 import Link from 'next/link'
@@ -78,10 +78,6 @@ export default function VolunteersPage({ user }: VolunteersPageProps) {
     }
   }, [user, router])
 
-  useEffect(() => {
-    filterVolunteers()
-  }, [volunteers, searchTerm, statusFilter])
-
   const fetchVolunteers = async () => {
     try {
       setIsLoading(true)
@@ -99,7 +95,7 @@ export default function VolunteersPage({ user }: VolunteersPageProps) {
     }
   }
 
-  const filterVolunteers = () => {
+  const filterVolunteers = useCallback(() => {
     let filtered = volunteers
 
     if (searchTerm) {
@@ -115,7 +111,11 @@ export default function VolunteersPage({ user }: VolunteersPageProps) {
     }
 
     setFilteredVolunteers(filtered)
-  }
+  }, [volunteers, searchTerm, statusFilter])
+
+  useEffect(() => {
+    filterVolunteers()
+  }, [volunteers, searchTerm, statusFilter, filterVolunteers])
 
   const updateVolunteerStatus = async (volunteerId: number, status: string, notes?: string) => {
     try {

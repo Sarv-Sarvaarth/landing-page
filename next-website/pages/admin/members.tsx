@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
 import Link from 'next/link'
@@ -80,9 +80,6 @@ export default function MembersPage({ user }: MembersPageProps) {
     }
   }, [user, router])
 
-  useEffect(() => {
-    filterMembers()
-  }, [members, searchTerm, statusFilter])
 
   const fetchMembers = async () => {
     try {
@@ -101,7 +98,7 @@ export default function MembersPage({ user }: MembersPageProps) {
     }
   }
 
-  const filterMembers = () => {
+  const filterMembers = useCallback(() => {
     let filtered = members
 
     if (searchTerm) {
@@ -117,7 +114,11 @@ export default function MembersPage({ user }: MembersPageProps) {
     }
 
     setFilteredMembers(filtered)
-  }
+  }, [members, searchTerm, statusFilter])
+
+  useEffect(() => {
+    filterMembers()
+  }, [members, searchTerm, statusFilter, filterMembers])
 
   const updateMemberStatus = async (memberId: number, status: string, notes?: string) => {
     try {

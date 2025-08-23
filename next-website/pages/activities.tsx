@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Head from 'next/head'
 import Image from 'next/image'
 import { GetServerSideProps } from 'next'
@@ -7,9 +7,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import ActivityModal, { Activity } from '@/components/modals/ActivityModal'
 import { Search, Filter, Calendar, MapPin, Users, Target, Heart, BookOpen, Stethoscope, Home, Building2, Clock, CheckCircle2, AlertCircle, Calendar as CalendarIcon } from 'lucide-react'
+import { SelectActivity } from '@/src/db/schema'
 
 interface ActivitiesPageProps {
-  initialActivities: Activity[]
+  initialActivities: SelectActivity[]
   initialStats: {
     total: number
     completed: number
@@ -20,7 +21,7 @@ interface ActivitiesPageProps {
 }
 
 export default function Activities({ initialActivities, initialStats }: ActivitiesPageProps) {
-  const [activities, setActivities] = useState<Activity[]>(initialActivities)
+  const [activities, setActivities] = useState<Activity[]>([])
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
@@ -29,12 +30,12 @@ export default function Activities({ initialActivities, initialStats }: Activiti
   const [isLoading, setIsLoading] = useState(false)
 
   // Convert database activities to frontend format
-  const convertActivities = (dbActivities: any[]): Activity[] => {
+  const convertActivities = useCallback((dbActivities: SelectActivity[]): Activity[] => {
     return dbActivities.map(activity => ({
       id: activity.id.toString(),
       title: activity.title,
-      category: activity.category,
-      status: activity.status,
+      category: activity.category as Activity['category'],
+      status: activity.status as Activity['status'],
       date: activity.startDate && activity.endDate
         ? `${new Date(activity.startDate).toLocaleDateString('en-IN')} - ${new Date(activity.endDate).toLocaleDateString('en-IN')}`
         : activity.startDate
@@ -54,12 +55,12 @@ export default function Activities({ initialActivities, initialStats }: Activiti
       sponsors: activity.sponsors ? JSON.parse(activity.sponsors) : [],
       tags: activity.tags ? JSON.parse(activity.tags) : []
     }))
-  }
+  }, [])
 
   useEffect(() => {
     const converted = convertActivities(initialActivities)
     setActivities(converted)
-  }, [initialActivities])
+  }, [initialActivities, convertActivities])
 
 
 

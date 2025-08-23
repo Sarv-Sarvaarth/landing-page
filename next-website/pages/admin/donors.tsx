@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
 import Link from 'next/link'
@@ -78,10 +78,6 @@ export default function DonorsPage({ user }: DonorsPageProps) {
     }
   }, [user, router])
 
-  useEffect(() => {
-    filterDonors()
-  }, [donors, searchTerm, statusFilter])
-
   const fetchDonors = async () => {
     try {
       setIsLoading(true)
@@ -99,7 +95,7 @@ export default function DonorsPage({ user }: DonorsPageProps) {
     }
   }
 
-  const filterDonors = () => {
+  const filterDonors = useCallback(() => {
     let filtered = donors
 
     if (searchTerm) {
@@ -115,7 +111,11 @@ export default function DonorsPage({ user }: DonorsPageProps) {
     }
 
     setFilteredDonors(filtered)
-  }
+  }, [donors, searchTerm, statusFilter])
+
+  useEffect(() => {
+    filterDonors()
+  }, [donors, searchTerm, statusFilter, filterDonors])
 
   const updateDonorStatus = async (donorId: number, status: string, notes?: string) => {
     try {

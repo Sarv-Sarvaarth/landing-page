@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Head from 'next/head'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -29,6 +29,7 @@ import {
   DollarSign,
   Award
 } from 'lucide-react'
+import { SelectProject } from '@/src/db/schema'
 
 interface Project {
   id: string
@@ -62,7 +63,7 @@ interface Project {
 }
 
 interface ProjectsPageProps {
-  initialProjects: Project[]
+  initialProjects: SelectProject[]
   initialStats: {
     total: number
     completed: number
@@ -74,7 +75,7 @@ interface ProjectsPageProps {
 
 export default function Projects({ initialProjects, initialStats }: ProjectsPageProps) {
   // Helper function to safely parse JSON
-  const safeJsonParse = (jsonString: string | null | undefined, fallback: any = []) => {
+  const safeJsonParse = useCallback((jsonString: string | null | undefined, fallback: any = []) => {
     if (!jsonString) return fallback
     try {
       return JSON.parse(jsonString)
@@ -82,18 +83,18 @@ export default function Projects({ initialProjects, initialStats }: ProjectsPage
       console.error('Failed to parse JSON:', jsonString, error)
       return fallback
     }
-  }
+  }, [])
 
   // Convert database projects to frontend format
-  const convertProjects = (dbProjects: any[]): Project[] => {
+  const convertProjects = useCallback((dbProjects: SelectProject[]): Project[] => {
     return dbProjects.map(project => ({
       id: project.id.toString(),
       title: project.title,
       slug: project.slug,
       category: project.category as 'healthcare' | 'education' | 'social-welfare' | 'community-development' | 'infrastructure',
       status: project.status as 'completed' | 'ongoing' | 'paused' | 'archived',
-      startDate: project.startDate,
-      endDate: project.endDate,
+      startDate: project.startDate || 'TBD',
+      endDate: project.endDate || undefined,
       location: project.location,
       description: project.fullDescription,
       shortDescription: project.shortDescription,
@@ -112,7 +113,7 @@ export default function Projects({ initialProjects, initialStats }: ProjectsPage
       tags: safeJsonParse(project.tags, []),
       impactMetrics: safeJsonParse(project.impactMetrics, [])
     }))
-  }
+  }, [safeJsonParse])
 
   // Convert projects immediately to avoid rendering raw database data
   const [projects, setProjects] = useState<Project[]>(() => convertProjects(initialProjects))
@@ -125,7 +126,7 @@ export default function Projects({ initialProjects, initialStats }: ProjectsPage
   useEffect(() => {
     const converted = convertProjects(initialProjects)
     setProjects(converted)
-  }, [initialProjects])
+  }, [initialProjects, convertProjects])
 
 
 

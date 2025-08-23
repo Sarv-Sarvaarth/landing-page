@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
 import Link from 'next/link'
@@ -132,9 +132,7 @@ export default function ProjectsPage({ user }: ProjectsPageProps) {
     }
   }, [user, router])
 
-  useEffect(() => {
-    filterProjects()
-  }, [projects, searchTerm, categoryFilter, statusFilter, publishedFilter])
+
 
   const fetchProjects = async () => {
     try {
@@ -153,7 +151,7 @@ export default function ProjectsPage({ user }: ProjectsPageProps) {
     }
   }
 
-  const filterProjects = () => {
+  const filterProjects = useCallback(() => {
     let filtered = projects
 
     if (searchTerm) {
@@ -181,7 +179,11 @@ export default function ProjectsPage({ user }: ProjectsPageProps) {
     }
 
     setFilteredProjects(filtered)
-  }
+  }, [projects, searchTerm, categoryFilter, statusFilter, publishedFilter])
+
+  useEffect(() => {
+    filterProjects()
+  }, [projects, searchTerm, categoryFilter, statusFilter, publishedFilter, filterProjects])
 
   const resetForm = () => {
     setFormData({
