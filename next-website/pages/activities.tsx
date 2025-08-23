@@ -371,39 +371,22 @@ export default function Activities({ initialActivities, initialStats }: Activiti
 
 export const getServerSideProps: GetServerSideProps<ActivitiesPageProps> = async () => {
   try {
-    // Fetch activities and stats from API
-    const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000'
+    // Import database functions to avoid HTTP requests in serverless environment
+    const { getPublishedActivities, getActivitiesStats } = await import('@/src/db/queries/activities')
 
-    const [activitiesResponse, statsResponse] = await Promise.all([
-      fetch(`${baseUrl}/api/activities`),
-      fetch(`${baseUrl}/api/activities?action=stats`)
+    // Fetch activities and stats directly from database
+    const [activitiesData, statsData] = await Promise.all([
+      getPublishedActivities({ limit: 50, offset: 0 }),
+      getActivitiesStats()
     ])
 
-    let activities = []
-    let stats = {
-      total: 0,
-      completed: 0,
-      ongoing: 0,
-      upcoming: 0,
-      totalBeneficiaries: 0
-    }
-
-    if (activitiesResponse.ok) {
-      const activitiesData = await activitiesResponse.json()
-      activities = activitiesData.data?.activities || []
-    }
-
-    if (statsResponse.ok) {
-      const statsData = await statsResponse.json()
-      const dbStats = statsData.data || {}
-
-      stats = {
-        total: dbStats.publishedActivities || 0,
-        completed: dbStats.completedActivities || 0,
-        ongoing: dbStats.ongoingActivities || 0,
-        upcoming: dbStats.upcomingActivities || 0,
-        totalBeneficiaries: dbStats.totalBeneficiaries || 0
-      }
+    const activities = activitiesData.activities || []
+    const stats = {
+      total: statsData.publishedActivities || 0,
+      completed: statsData.completedActivities || 0,
+      ongoing: statsData.ongoingActivities || 0,
+      upcoming: statsData.upcomingActivities || 0,
+      totalBeneficiaries: statsData.totalBeneficiaries || 0
     }
 
     return {

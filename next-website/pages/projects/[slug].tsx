@@ -556,18 +556,13 @@ export const getServerSideProps: GetServerSideProps<ProjectDetailPageProps> = as
       return { notFound: true }
     }
 
-    // Fetch project by slug from API
-    const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000'
-    const response = await fetch(`${baseUrl}/api/projects?action=by-slug&slug=${slug}`)
+    // Import database function to avoid HTTP requests in serverless environment
+    const { getProjectBySlug } = await import('@/src/db/queries/projects')
 
-    if (!response.ok) {
-      return { notFound: true }
-    }
+    // Fetch project by slug directly from database
+    const project = await getProjectBySlug(slug)
 
-    const result = await response.json()
-    const project = result.data
-
-    if (!project) {
+    if (!project || !project.publishedAt) {
       return { notFound: true }
     }
 

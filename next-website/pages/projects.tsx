@@ -513,39 +513,22 @@ export default function Projects({ initialProjects, initialStats }: ProjectsPage
 
 export const getServerSideProps: GetServerSideProps<ProjectsPageProps> = async () => {
   try {
-    // Fetch projects and stats from API
-    const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000'
+    // Import database functions to avoid HTTP requests in serverless environment
+    const { getPublishedProjects, getProjectsStats } = await import('@/src/db/queries/projects')
 
-    const [projectsResponse, statsResponse] = await Promise.all([
-      fetch(`${baseUrl}/api/projects`),
-      fetch(`${baseUrl}/api/projects?action=stats`)
+    // Fetch projects and stats directly from database
+    const [projectsData, statsData] = await Promise.all([
+      getPublishedProjects({ limit: 50, offset: 0 }),
+      getProjectsStats()
     ])
 
-    let projects = []
-    let stats = {
-      total: 0,
-      completed: 0,
-      ongoing: 0,
-      totalBeneficiaries: 0,
-      totalBudget: 0
-    }
-
-    if (projectsResponse.ok) {
-      const projectsData = await projectsResponse.json()
-      projects = projectsData.data?.projects || []
-    }
-
-    if (statsResponse.ok) {
-      const statsData = await statsResponse.json()
-      const dbStats = statsData.data || {}
-
-      stats = {
-        total: dbStats.publishedProjects || 0,
-        completed: dbStats.completedProjects || 0,
-        ongoing: dbStats.ongoingProjects || 0,
-        totalBeneficiaries: dbStats.totalBeneficiaries || 0,
-        totalBudget: dbStats.totalBudget || 0
-      }
+    const projects = projectsData.projects || []
+    const stats = {
+      total: statsData.publishedProjects || 0,
+      completed: statsData.completedProjects || 0,
+      ongoing: statsData.ongoingProjects || 0,
+      totalBeneficiaries: statsData.totalBeneficiaries || 0,
+      totalBudget: statsData.totalBudget || 0
     }
 
     return {

@@ -102,8 +102,14 @@ const validateData = (data: any): { isValid: boolean; errors: string[] } => {
 
 const parseForm = (req: NextApiRequest): Promise<{ fields: any; files: any }> => {
   return new Promise((resolve, reject) => {
-    // Create uploads directory if it doesn't exist
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads')
+    // Use temporary directory in serverless environments, public/uploads locally
+    // IMPORTANT: Files in /tmp are ephemeral in serverless and will be lost after function execution
+    // For production, consider using cloud storage (AWS S3, Cloudinary, etc.) for persistent file storage
+    const isServerless = process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.VERCEL
+    const uploadDir = isServerless
+      ? path.join('/tmp', 'uploads')
+      : path.join(process.cwd(), 'public', 'uploads')
+
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true })
     }
@@ -141,6 +147,9 @@ export default async function handler(
   }
 
   try {
+    // Check if running in serverless environment
+    const isServerless = process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.VERCEL
+
     // Parse form data including files
     const { fields, files } = await parseForm(req)
 
@@ -213,8 +222,10 @@ export default async function handler(
       paymentMode: data.paymentMode,
 
       // Receipt file information
+      // Note: In serverless environments, files are stored in /tmp and are temporary
+      // TODO: Implement cloud storage (AWS S3, Cloudinary) for persistent file storage in production
       receiptFilename: data.receipt?.originalFilename || null,
-      receiptPath: data.receipt ? `/uploads/${data.receipt.filename}` : null,
+      receiptPath: data.receipt ? (isServerless ? `/tmp/uploads/${data.receipt.filename}` : `/uploads/${data.receipt.filename}`) : null,
       receiptMimeType: data.receipt?.mimetype || null,
       receiptSize: data.receipt?.size || null,
 
