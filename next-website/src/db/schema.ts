@@ -235,4 +235,40 @@ export const projectsTable = sqliteTable('projects', {
 export type InsertProject = typeof projectsTable.$inferInsert;
 export type SelectProject = typeof projectsTable.$inferSelect;
 
+// Contact Messages Table
+export const contactMessagesTable = sqliteTable('contact_messages', {
+  id: integer('id').primaryKey(),
+  name: text('name').notNull(),
+  email: text('email').notNull(),
+  phone: text('phone'), // Optional phone number
+  subject: text('subject').notNull(),
+  message: text('message').notNull(),
+
+  // Contact type/category
+  type: text('type').notNull().default('general'), // 'general', 'support', 'partnership', 'volunteer', 'donation'
+
+  // Status tracking
+  status: text('status').notNull().default('new'), // 'new', 'read', 'replied', 'resolved', 'archived'
+  priority: text('priority').notNull().default('normal'), // 'low', 'normal', 'high', 'urgent'
+
+  // Admin fields
+  assignedTo: integer('assigned_to').references(() => usersTable.id), // Admin assigned to handle this
+  adminNotes: text('admin_notes'), // Internal notes for admins
+  repliedAt: text('replied_at'), // When admin replied
+  resolvedAt: text('resolved_at'), // When issue was resolved
+
+  // Metadata
+  ipAddress: text('ip_address'), // For spam prevention
+  userAgent: text('user_agent'), // Browser info
+
+  createdAt: text('created_at')
+    .default(sql`(CURRENT_TIMESTAMP)`)
+    .notNull(),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).$onUpdate(() => new Date()),
+});
+
+// Type exports for contact messages
+export type InsertContactMessage = typeof contactMessagesTable.$inferInsert;
+export type SelectContactMessage = typeof contactMessagesTable.$inferSelect;
+
 

@@ -1,0 +1,20 @@
+CREATE TABLE `contact_messages` (
+	`id` integer PRIMARY KEY NOT NULL,
+	`name` text NOT NULL,
+	`email` text NOT NULL,
+	`phone` text,
+	`subject` text NOT NULL,
+	`message` text NOT NULL,
+	`type` text DEFAULT 'general' NOT NULL,
+	`status` text DEFAULT 'new' NOT NULL,
+	`priority` text DEFAULT 'normal' NOT NULL,
+	`assigned_to` integer,
+	`admin_notes` text,
+	`replied_at` text,
+	`resolved_at` text,
+	`ip_address` text,
+	`user_agent` text,
+	`created_at` text DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
+	`updated_at` integer,
+	FOREIGN KEY (`assigned_to`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action
+);

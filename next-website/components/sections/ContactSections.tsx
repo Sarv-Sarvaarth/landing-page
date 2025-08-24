@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
@@ -5,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Heart, Phone, Mail, MapPin, Clock, Users, Award, Send, MessageCircle, Calendar } from 'lucide-react'
+import { Heart, Phone, Mail, MapPin, Clock, Users, Award, Send, MessageCircle, Calendar, CheckCircle, AlertCircle, Loader2 } from 'lucide-react'
 
 export const QuickStatsSection = () => (
   <section className="ngo-section bg-gray-50">
@@ -43,100 +44,230 @@ export const QuickStatsSection = () => (
   </section>
 )
 
-export const ContactFormSection = () => (
-  <section className="ngo-section bg-white">
-    <div className="ngo-container">
-      <div className="text-center mb-16">
-        <div className="mb-4">
-          <Image src="/assets/img/shapes/title-underline.png" alt="" width={120} height={20} className="mx-auto mb-4 opacity-60" />
-        </div>
-        <h2 className="ngo-heading">Get In Touch</h2>
-        <p className="ngo-text text-xl max-w-3xl mx-auto">
-          We'd love to hear from you. Send us a message and we'll respond as soon as possible.
-        </p>
-      </div>
+export const ContactFormSection = () => {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    subject: '',
+    message: '',
+    type: 'general'
+  })
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
+  const [submitMessage, setSubmitMessage] = useState('')
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-        {/* Contact Form */}
-        <div className="bg-gradient-to-br from-blue-50 to-orange-50 rounded-2xl p-8 lg:p-10">
-          <div className="flex items-center mb-6">
-            <div className="w-12 h-12 bg-ngo-blue rounded-full flex items-center justify-center mr-4">
-              <MessageCircle className="w-6 h-6 text-white" />
-            </div>
-            <h3 className="text-2xl font-bold text-ngo-blue">Send us a message</h3>
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }))
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+    setSubmitStatus('idle')
+
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        setSubmitStatus('success')
+        setSubmitMessage(result.message)
+        // Reset form
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          subject: '',
+          message: '',
+          type: 'general'
+        })
+      } else {
+        setSubmitStatus('error')
+        setSubmitMessage(result.error || 'Failed to send message. Please try again.')
+      }
+    } catch (error) {
+      setSubmitStatus('error')
+      setSubmitMessage('Network error. Please check your connection and try again.')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  return (
+    <section className="ngo-section bg-white">
+      <div className="ngo-container">
+        <div className="text-center mb-16">
+          <div className="mb-4">
+            <Image src="/assets/img/shapes/title-underline.png" alt="" width={120} height={20} className="mx-auto mb-4 opacity-60" />
           </div>
+          <h2 className="ngo-heading">Get In Touch</h2>
+          <p className="ngo-text text-xl max-w-3xl mx-auto">
+            We'd love to hear from you. Send us a message and we'll respond as soon as possible.
+          </p>
+        </div>
 
-          <form className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="name" className="text-sm font-medium text-gray-700 mb-2 block">
-                  Your Name *
-                </Label>
-                <Input
-                  id="name"
-                  type="text"
-                  placeholder="Enter your full name"
-                  className="w-full"
-                  required
-                />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          {/* Contact Form */}
+          <div className="bg-gradient-to-br from-blue-50 to-orange-50 rounded-2xl p-8 lg:p-10">
+            <div className="flex items-center mb-6">
+              <div className="w-12 h-12 bg-ngo-blue rounded-full flex items-center justify-center mr-4">
+                <MessageCircle className="w-6 h-6 text-white" />
               </div>
-              <div>
-                <Label htmlFor="email" className="text-sm font-medium text-gray-700 mb-2 block">
-                  Your Email *
-                </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="Enter your email address"
-                  className="w-full"
-                  required
-                />
-              </div>
+              <h3 className="text-2xl font-bold text-ngo-blue">Send us a message</h3>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="phone" className="text-sm font-medium text-gray-700 mb-2 block">
-                  Phone Number
-                </Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  placeholder="+91 XXXXX XXXXX"
-                  className="w-full"
-                />
+            {/* Status Messages */}
+            {submitStatus === 'success' && (
+              <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center">
+                <CheckCircle className="w-5 h-5 text-green-600 mr-3" />
+                <p className="text-green-800">{submitMessage}</p>
               </div>
+            )}
+
+            {submitStatus === 'error' && (
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center">
+                <AlertCircle className="w-5 h-5 text-red-600 mr-3" />
+                <p className="text-red-800">{submitMessage}</p>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="name" className="text-sm font-medium text-gray-700 mb-2 block">
+                    Your Name *
+                  </Label>
+                  <Input
+                    id="name"
+                    name="name"
+                    type="text"
+                    placeholder="Enter your full name"
+                    className="w-full"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    required
+                    disabled={isSubmitting}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="email" className="text-sm font-medium text-gray-700 mb-2 block">
+                    Your Email *
+                  </Label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="Enter your email address"
+                    className="w-full"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    required
+                    disabled={isSubmitting}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="phone" className="text-sm font-medium text-gray-700 mb-2 block">
+                    Phone Number
+                  </Label>
+                  <Input
+                    id="phone"
+                    name="phone"
+                    type="tel"
+                    placeholder="+91 XXXXX XXXXX"
+                    className="w-full"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    disabled={isSubmitting}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="type" className="text-sm font-medium text-gray-700 mb-2 block">
+                    Inquiry Type
+                  </Label>
+                  <select
+                    id="type"
+                    name="type"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ngo-blue focus:border-transparent"
+                    value={formData.type}
+                    onChange={handleInputChange}
+                    disabled={isSubmitting}
+                  >
+                    <option value="general">General Inquiry</option>
+                    <option value="support">Support</option>
+                    <option value="partnership">Partnership</option>
+                    <option value="volunteer">Volunteer</option>
+                    <option value="donation">Donation</option>
+                  </select>
+                </div>
+              </div>
+
               <div>
                 <Label htmlFor="subject" className="text-sm font-medium text-gray-700 mb-2 block">
-                  Subject
+                  Subject *
                 </Label>
                 <Input
                   id="subject"
+                  name="subject"
                   type="text"
                   placeholder="What is this about?"
                   className="w-full"
+                  value={formData.subject}
+                  onChange={handleInputChange}
+                  required
+                  disabled={isSubmitting}
                 />
               </div>
-            </div>
 
-            <div>
-              <Label htmlFor="message" className="text-sm font-medium text-gray-700 mb-2 block">
-                Message *
-              </Label>
-              <Textarea
-                id="message"
-                placeholder="Write your message here..."
-                className="w-full min-h-[120px]"
-                required
-              />
-            </div>
+              <div>
+                <Label htmlFor="message" className="text-sm font-medium text-gray-700 mb-2 block">
+                  Message *
+                </Label>
+                <Textarea
+                  id="message"
+                  name="message"
+                  placeholder="Write your message here..."
+                  className="w-full min-h-[120px]"
+                  value={formData.message}
+                  onChange={handleInputChange}
+                  required
+                  disabled={isSubmitting}
+                />
+              </div>
 
-            <Button type="submit" className="w-full bg-ngo-blue hover:bg-ngo-blue-light text-white py-3">
-              <Send className="w-4 h-4 mr-2" />
-              Send Message
-            </Button>
-          </form>
-        </div>
+              <Button
+                type="submit"
+                className="w-full bg-ngo-blue hover:bg-ngo-blue-light text-white py-3"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4 mr-2" />
+                    Send Message
+                  </>
+                )}
+              </Button>
+            </form>
+          </div>
 
         {/* Contact Information */}
         <div className="space-y-8">
@@ -232,7 +363,8 @@ export const ContactFormSection = () => (
       </div>
     </div>
   </section>
-)
+  )
+}
 
 export const LeadershipContactSection = () => (
   <section className="ngo-section relative overflow-hidden"
