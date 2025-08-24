@@ -10,7 +10,11 @@ import { Search, Filter, Calendar, MapPin, Users, Target, Heart, BookOpen, Steth
 import { SelectActivity } from '@/src/db/schema'
 
 interface ActivitiesPageProps {
-  initialActivities: SelectActivity[]
+  initialActivities: (Omit<SelectActivity, 'createdAt' | 'updatedAt' | 'publishedAt'> & {
+    createdAt: string
+    updatedAt: string | null
+    publishedAt: string | null
+  })[]
   initialStats: {
     total: number
     completed: number
@@ -30,7 +34,7 @@ export default function Activities({ initialActivities, initialStats }: Activiti
   const [isLoading, setIsLoading] = useState(false)
 
   // Convert database activities to frontend format
-  const convertActivities = useCallback((dbActivities: SelectActivity[]): Activity[] => {
+  const convertActivities = useCallback((dbActivities: ActivitiesPageProps['initialActivities']): Activity[] => {
     return dbActivities.map(activity => ({
       id: activity.id.toString(),
       title: activity.title,
@@ -386,7 +390,7 @@ export const getServerSideProps: GetServerSideProps<ActivitiesPageProps> = async
     // Convert Date objects to strings to make them JSON serializable
     const serializedActivities = activities.map(activity => ({
       ...activity,
-      createdAt: activity.createdAt ? new Date(activity.createdAt).toISOString() : null,
+      createdAt: activity.createdAt ? new Date(activity.createdAt).toISOString() : new Date().toISOString(),
       updatedAt: activity.updatedAt ? new Date(activity.updatedAt).toISOString() : null,
       publishedAt: activity.publishedAt ? new Date(activity.publishedAt).toISOString() : null,
       startDate: activity.startDate ? activity.startDate : null,
