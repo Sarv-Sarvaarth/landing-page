@@ -343,6 +343,10 @@ export default function MembersPage({ user }: MembersPageProps) {
                             {member.salutation} {member.fullName}
                           </h3>
                           {getStatusBadge(member.status)}
+                          <Badge variant="outline" className="bg-purple-50 text-purple-700">
+                            <Crown className="w-3 h-3 mr-1" />
+                            Lifetime
+                          </Badge>
                           {member.membershipId && (
                             <Badge variant="outline" className="bg-blue-50 text-blue-700">
                               ID: {member.membershipId}
@@ -363,12 +367,7 @@ export default function MembersPage({ user }: MembersPageProps) {
                             <Calendar className="w-4 h-4" />
                             Applied: {formatDate(member.createdAt)}
                           </div>
-                          {member.membershipExpiryDate && (
-                            <div className="flex items-center gap-2">
-                              <Clock className="w-4 h-4" />
-                              Expires: {formatDate(member.membershipExpiryDate)}
-                            </div>
-                          )}
+
                         </div>
 
                         <div className="text-sm text-gray-600">
@@ -471,7 +470,13 @@ export default function MembersPage({ user }: MembersPageProps) {
                     </div>
                     <div>
                       <label className="text-sm font-medium text-gray-700">Status</label>
-                      <div className="mt-1">{getStatusBadge(selectedMember.status)}</div>
+                      <div className="mt-1 flex gap-2">
+                        {getStatusBadge(selectedMember.status)}
+                        <Badge variant="outline" className="bg-purple-50 text-purple-700">
+                          <Crown className="w-3 h-3 mr-1" />
+                          Lifetime
+                        </Badge>
+                      </div>
                     </div>
                     <div>
                       <label className="text-sm font-medium text-gray-700">Membership Fee</label>
@@ -495,12 +500,7 @@ export default function MembersPage({ user }: MembersPageProps) {
                         <p className="text-sm text-gray-900">{formatDate(selectedMember.membershipStartDate)}</p>
                       </div>
                     )}
-                    {selectedMember.membershipExpiryDate && (
-                      <div>
-                        <label className="text-sm font-medium text-gray-700">Expiry Date</label>
-                        <p className="text-sm text-gray-900">{formatDate(selectedMember.membershipExpiryDate)}</p>
-                      </div>
-                    )}
+
                   </div>
 
                   <div>

@@ -16,8 +16,40 @@ export async function createVolunteer(data: InsertVolunteer) {
   return result[0];
 }
 
-export async function getVolunteerById(id: number): Promise<SelectVolunteer | undefined> {
-  const result = await db.select().from(volunteersTable).where(eq(volunteersTable.id, id));
+export async function getVolunteerById(id: number): Promise<any | undefined> {
+  const result = await db.select({
+    id: volunteersTable.id,
+    email: volunteersTable.email,
+    salutation: volunteersTable.salutation,
+    fullName: volunteersTable.fullName,
+    address: volunteersTable.address,
+    aadhaarNumber: volunteersTable.aadhaarNumber,
+    panNumber: volunteersTable.panNumber,
+    occupation: volunteersTable.occupation,
+    professionalDetails: volunteersTable.professionalDetails,
+    skills: volunteersTable.skills,
+    availability: volunteersTable.availability,
+    preferredRoles: volunteersTable.preferredRoles,
+    status: volunteersTable.status,
+    applicationDate: volunteersTable.applicationDate,
+    approvedDate: volunteersTable.approvedDate,
+    approvedBy: volunteersTable.approvedBy,
+    appliedRoleId: volunteersTable.appliedRoleId,
+    roleAssignedDate: volunteersTable.roleAssignedDate,
+    phoneNumber: volunteersTable.phoneNumber,
+    emergencyContact: volunteersTable.emergencyContact,
+    notes: volunteersTable.notes,
+    createdAt: volunteersTable.createdAt,
+    updatedAt: volunteersTable.updatedAt,
+    // Role information
+    roleTitle: volunteerRolesTable.title,
+    roleDescription: volunteerRolesTable.description,
+    roleLocation: volunteerRolesTable.location,
+    roleTimeCommitment: volunteerRolesTable.timeCommitment,
+  })
+    .from(volunteersTable)
+    .leftJoin(volunteerRolesTable, eq(volunteersTable.appliedRoleId, volunteerRolesTable.id))
+    .where(eq(volunteersTable.id, id));
   return result[0];
 }
 
@@ -30,18 +62,49 @@ export async function getAllVolunteers(
   page = 1,
   pageSize = 20,
   status?: string
-): Promise<SelectVolunteer[]> {
+): Promise<any[]> {
+  const baseQuery = db.select({
+    id: volunteersTable.id,
+    email: volunteersTable.email,
+    salutation: volunteersTable.salutation,
+    fullName: volunteersTable.fullName,
+    address: volunteersTable.address,
+    aadhaarNumber: volunteersTable.aadhaarNumber,
+    panNumber: volunteersTable.panNumber,
+    occupation: volunteersTable.occupation,
+    professionalDetails: volunteersTable.professionalDetails,
+    skills: volunteersTable.skills,
+    availability: volunteersTable.availability,
+    preferredRoles: volunteersTable.preferredRoles,
+    status: volunteersTable.status,
+    applicationDate: volunteersTable.applicationDate,
+    approvedDate: volunteersTable.approvedDate,
+    approvedBy: volunteersTable.approvedBy,
+    appliedRoleId: volunteersTable.appliedRoleId,
+    roleAssignedDate: volunteersTable.roleAssignedDate,
+    phoneNumber: volunteersTable.phoneNumber,
+    emergencyContact: volunteersTable.emergencyContact,
+    notes: volunteersTable.notes,
+    createdAt: volunteersTable.createdAt,
+    updatedAt: volunteersTable.updatedAt,
+    // Role information
+    roleTitle: volunteerRolesTable.title,
+    roleDescription: volunteerRolesTable.description,
+    roleLocation: volunteerRolesTable.location,
+    roleTimeCommitment: volunteerRolesTable.timeCommitment,
+  })
+    .from(volunteersTable)
+    .leftJoin(volunteerRolesTable, eq(volunteersTable.appliedRoleId, volunteerRolesTable.id));
+
   if (status) {
-    return db.select()
-      .from(volunteersTable)
+    return baseQuery
       .where(eq(volunteersTable.status, status))
       .orderBy(desc(volunteersTable.applicationDate))
       .limit(pageSize)
       .offset((page - 1) * pageSize);
   }
 
-  return db.select()
-    .from(volunteersTable)
+  return baseQuery
     .orderBy(desc(volunteersTable.applicationDate))
     .limit(pageSize)
     .offset((page - 1) * pageSize);
@@ -93,8 +156,38 @@ export async function assignVolunteerToRole(volunteerId: number, roleId: number)
 }
 
 export async function searchVolunteers(searchTerm: string, page = 1, pageSize = 20) {
-  return db.select()
+  return db.select({
+    id: volunteersTable.id,
+    email: volunteersTable.email,
+    salutation: volunteersTable.salutation,
+    fullName: volunteersTable.fullName,
+    address: volunteersTable.address,
+    aadhaarNumber: volunteersTable.aadhaarNumber,
+    panNumber: volunteersTable.panNumber,
+    occupation: volunteersTable.occupation,
+    professionalDetails: volunteersTable.professionalDetails,
+    skills: volunteersTable.skills,
+    availability: volunteersTable.availability,
+    preferredRoles: volunteersTable.preferredRoles,
+    status: volunteersTable.status,
+    applicationDate: volunteersTable.applicationDate,
+    approvedDate: volunteersTable.approvedDate,
+    approvedBy: volunteersTable.approvedBy,
+    appliedRoleId: volunteersTable.appliedRoleId,
+    roleAssignedDate: volunteersTable.roleAssignedDate,
+    phoneNumber: volunteersTable.phoneNumber,
+    emergencyContact: volunteersTable.emergencyContact,
+    notes: volunteersTable.notes,
+    createdAt: volunteersTable.createdAt,
+    updatedAt: volunteersTable.updatedAt,
+    // Role information
+    roleTitle: volunteerRolesTable.title,
+    roleDescription: volunteerRolesTable.description,
+    roleLocation: volunteerRolesTable.location,
+    roleTimeCommitment: volunteerRolesTable.timeCommitment,
+  })
     .from(volunteersTable)
+    .leftJoin(volunteerRolesTable, eq(volunteersTable.appliedRoleId, volunteerRolesTable.id))
     .where(
       like(volunteersTable.fullName, `%${searchTerm}%`)
     )

@@ -60,7 +60,7 @@ export default function Membership() {
     {
       step: '2',
       title: 'Pay Membership Fee',
-      description: 'Pay ₹1000 annual membership fee via UPI, Net Banking, or Cash'
+      description: 'Pay ₹1000 lifetime membership fee via UPI, Net Banking, or Cash'
     },
     {
       step: '3',
@@ -78,7 +78,7 @@ export default function Membership() {
     <>
       <Head>
         <title>Become a Member - SARVAARTH & SEVAARTH FOUNDATION</title>
-        <meta name="description" content="Join SARVAARTH & SEVAARTH FOUNDATION as an annual member. Get exclusive access to events, impact reports, and be part of our mission for social change. Membership fee: ₹1000 with tax benefits." />
+        <meta name="description" content="Join SARVAARTH & SEVAARTH FOUNDATION as a lifetime member. Get exclusive access to events, impact reports, and be part of our mission for social change. Membership fee: ₹1000 with tax benefits." />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
@@ -155,13 +155,13 @@ export default function Membership() {
                   <div className="w-16 h-16 bg-ngo-blue rounded-full flex items-center justify-center mx-auto mb-4">
                     <Crown className="w-8 h-8 text-white" />
                   </div>
-                  <CardTitle className="text-2xl text-ngo-blue">Annual Membership</CardTitle>
-                  <CardDescription>Join our community for a full year</CardDescription>
+                  <CardTitle className="text-2xl text-ngo-blue">Lifetime Membership</CardTitle>
+                  <CardDescription>Join our community for life</CardDescription>
                 </CardHeader>
                 <CardContent className="text-center">
                   <div className="mb-6">
                     <span className="text-4xl font-bold text-ngo-blue">₹1000</span>
-                    <span className="text-gray-600 ml-2">per year</span>
+                    <span className="text-gray-600 ml-2">lifetime</span>
                   </div>
                   <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
                     <p className="text-sm text-green-800 font-medium">Tax deductible under Section 80G</p>

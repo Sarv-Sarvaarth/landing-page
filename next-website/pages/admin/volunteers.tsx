@@ -53,6 +53,11 @@ interface Volunteer {
   phoneNumber: string | null
   emergencyContact: string | null
   notes: string | null
+  // Role information
+  roleTitle: string | null
+  roleDescription: string | null
+  roleLocation: string | null
+  roleTimeCommitment: string | null
 }
 
 interface VolunteersPageProps {
@@ -334,6 +339,12 @@ export default function VolunteersPage({ user }: VolunteersPageProps) {
                             {volunteer.salutation} {volunteer.fullName}
                           </h3>
                           {getStatusBadge(volunteer.status)}
+                          {volunteer.roleTitle && (
+                            <Badge variant="outline" className="bg-blue-50 text-blue-700">
+                              <Briefcase className="w-3 h-3 mr-1" />
+                              {volunteer.roleTitle}
+                            </Badge>
+                          )}
                           {parseJsonField(volunteer.skills).length > 0 && (
                             <Badge variant="outline" className="bg-purple-50 text-purple-700">
                               <Star className="w-3 h-3 mr-1" />
@@ -365,6 +376,12 @@ export default function VolunteersPage({ user }: VolunteersPageProps) {
 
                         <div className="text-sm text-gray-600">
                           <p><strong>Professional Details:</strong> {volunteer.professionalDetails.substring(0, 150)}{volunteer.professionalDetails.length > 150 ? '...' : ''}</p>
+                          {volunteer.roleTitle && (
+                            <p className="mt-1"><strong>Applied Role:</strong> {volunteer.roleTitle}
+                              {volunteer.roleLocation && ` (${volunteer.roleLocation})`}
+                              {volunteer.roleTimeCommitment && ` - ${volunteer.roleTimeCommitment}`}
+                            </p>
+                          )}
                           {parseJsonField(volunteer.skills).length > 0 && (
                             <p className="mt-1"><strong>Skills:</strong> {parseJsonField(volunteer.skills).join(', ')}</p>
                           )}
@@ -495,6 +512,35 @@ export default function VolunteersPage({ user }: VolunteersPageProps) {
                     <label className="text-sm font-medium text-gray-700">Professional Details</label>
                     <p className="text-sm text-gray-900">{selectedVolunteer.professionalDetails}</p>
                   </div>
+
+                  {selectedVolunteer.roleTitle && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Applied Role</label>
+                      <div className="mt-1">
+                        <Badge variant="outline" className="bg-blue-50 text-blue-700 text-sm">
+                          <Briefcase className="w-3 h-3 mr-1" />
+                          {selectedVolunteer.roleTitle}
+                        </Badge>
+                        {selectedVolunteer.roleDescription && (
+                          <p className="text-sm text-gray-600 mt-2">{selectedVolunteer.roleDescription}</p>
+                        )}
+                        <div className="flex gap-2 mt-2">
+                          {selectedVolunteer.roleLocation && (
+                            <Badge variant="outline" className="bg-gray-50 text-gray-700">
+                              <MapPin className="w-3 h-3 mr-1" />
+                              {selectedVolunteer.roleLocation}
+                            </Badge>
+                          )}
+                          {selectedVolunteer.roleTimeCommitment && (
+                            <Badge variant="outline" className="bg-gray-50 text-gray-700">
+                              <Clock className="w-3 h-3 mr-1" />
+                              {selectedVolunteer.roleTimeCommitment}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   {parseJsonField(selectedVolunteer.skills).length > 0 && (
                     <div>

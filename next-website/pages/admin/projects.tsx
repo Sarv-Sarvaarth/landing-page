@@ -34,7 +34,7 @@ import {
   Heart,
   Building2,
   Home,
-  DollarSign,
+  IndianRupee,
   Archive,
   Pause,
   AlertCircle
@@ -961,7 +961,7 @@ export default function ProjectsPage({ user }: ProjectsPageProps) {
                             </div>
                             {project.totalBudget && (
                               <div className="flex items-center gap-2">
-                                <DollarSign className="w-4 h-4" />
+                                <IndianRupee className="w-4 h-4" />
                                 {project.totalBudget}
                               </div>
                             )}

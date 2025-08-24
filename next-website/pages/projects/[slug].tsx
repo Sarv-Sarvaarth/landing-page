@@ -11,7 +11,7 @@ import {
   Calendar,
   MapPin,
   Users,
-  DollarSign,
+  IndianRupee,
   Target,
   TrendingUp,
   Award,
@@ -481,7 +481,7 @@ export default function ProjectDetailPage({ project }: ProjectDetailPageProps) {
 
                   {project.totalBudget && (
                     <div className="flex items-center gap-3">
-                      <DollarSign className="w-5 h-5 text-gray-600" />
+                      <IndianRupee className="w-5 h-5 text-gray-600" />
                       <div>
                         <div className="font-medium">Total Budget</div>
                         <div className="text-sm text-gray-600">{project.totalBudget}</div>

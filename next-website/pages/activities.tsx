@@ -382,6 +382,17 @@ export const getServerSideProps: GetServerSideProps<ActivitiesPageProps> = async
     ])
 
     const activities = activitiesData.activities || []
+
+    // Convert Date objects to strings to make them JSON serializable
+    const serializedActivities = activities.map(activity => ({
+      ...activity,
+      createdAt: activity.createdAt ? new Date(activity.createdAt).toISOString() : null,
+      updatedAt: activity.updatedAt ? new Date(activity.updatedAt).toISOString() : null,
+      publishedAt: activity.publishedAt ? new Date(activity.publishedAt).toISOString() : null,
+      startDate: activity.startDate ? activity.startDate : null,
+      endDate: activity.endDate ? activity.endDate : null
+    }))
+
     const stats = {
       total: statsData.publishedActivities || 0,
       completed: statsData.completedActivities || 0,
@@ -392,7 +403,7 @@ export const getServerSideProps: GetServerSideProps<ActivitiesPageProps> = async
 
     return {
       props: {
-        initialActivities: activities,
+        initialActivities: serializedActivities,
         initialStats: stats
       }
     }

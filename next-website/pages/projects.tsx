@@ -26,10 +26,17 @@ import {
   ArrowRight,
   Archive,
   TrendingUp,
-  DollarSign,
+  IndianRupee,
   Award
 } from 'lucide-react'
 import { SelectProject } from '@/src/db/schema'
+
+// Serialized version of SelectProject with Date objects converted to strings
+type SerializedProject = Omit<SelectProject, 'createdAt' | 'updatedAt' | 'publishedAt'> & {
+  createdAt: string
+  updatedAt: string
+  publishedAt: string | null
+}
 
 interface Project {
   id: string
@@ -63,7 +70,7 @@ interface Project {
 }
 
 interface ProjectsPageProps {
-  initialProjects: SelectProject[]
+  initialProjects: SerializedProject[]
   initialStats: {
     total: number
     completed: number
@@ -86,7 +93,7 @@ export default function Projects({ initialProjects, initialStats }: ProjectsPage
   }, [])
 
   // Convert database projects to frontend format
-  const convertProjects = useCallback((dbProjects: SelectProject[]): Project[] => {
+  const convertProjects = useCallback((dbProjects: SerializedProject[]): Project[] => {
     return dbProjects.map(project => ({
       id: project.id.toString(),
       title: project.title,
@@ -149,6 +156,7 @@ export default function Projects({ initialProjects, initialStats }: ProjectsPage
 
   const years = [
     { id: 'all', label: 'All Years' },
+    { id: '2025', label: '2025'},
     { id: '2024', label: '2024' },
     { id: '2023', label: '2023' },
     { id: '2022', label: '2022' },
@@ -414,7 +422,7 @@ export default function Projects({ initialProjects, initialStats }: ProjectsPage
                           <span>{project.beneficiaries.toLocaleString()} beneficiaries</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <DollarSign className="w-4 h-4" />
+                          <IndianRupee className="w-4 h-4" />
                           <span>{project.totalBudget}</span>
                         </div>
                       </div>
@@ -524,6 +532,17 @@ export const getServerSideProps: GetServerSideProps<ProjectsPageProps> = async (
     ])
 
     const projects = projectsData.projects || []
+
+    // Convert Date objects to strings to make them JSON serializable
+    const serializedProjects: SerializedProject[] = projects.map(project => ({
+      ...project,
+      createdAt: project.createdAt ? new Date(project.createdAt).toISOString() : new Date().toISOString(),
+      updatedAt: project.updatedAt ? new Date(project.updatedAt).toISOString() : new Date().toISOString(),
+      publishedAt: project.publishedAt ? new Date(project.publishedAt).toISOString() : null,
+      startDate: project.startDate || null,
+      endDate: project.endDate || null
+    }))
+
     const stats = {
       total: statsData.publishedProjects || 0,
       completed: statsData.completedProjects || 0,
@@ -534,7 +553,7 @@ export const getServerSideProps: GetServerSideProps<ProjectsPageProps> = async (
 
     return {
       props: {
-        initialProjects: projects,
+        initialProjects: serializedProjects,
         initialStats: stats
       }
     }
